@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard RH 3D — Grupo Vetor Brasil (Three.js)</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Calibri,Arial;background:#0b1622;color:#eaf2fa}
+header{padding:26px 22px 10px;max-width:1200px;margin:auto}header h1{margin:0;font-size:28px}header p{opacity:.8}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;max-width:1200px;margin:10px auto;padding:0 22px}
+.kpi{background:#13293f;border:1px solid #254664;border-radius:12px;padding:10px 12px}.kpi b{font-size:20px;color:#7cc4ff}
+nav{position:sticky;top:0;z-index:5;background:#0e2236;display:flex;gap:6px;padding:10px 16px;flex-wrap:wrap;border-bottom:1px solid #254664}
+nav button{border:0;background:#1a3a58;color:#fff;font-weight:700;padding:10px 16px;border-radius:9px;cursor:pointer}
+nav button.active{background:#1e90ff}
+main{max-width:1200px;margin:auto;padding:16px 22px 60px}.tab{display:none}.tab.active{display:block}
+.card{background:#10273e;border:1px solid #254664;border-radius:12px;padding:14px;margin-bottom:14px}
+.card h3{margin:0 0 4px;color:#7cc4ff}.card small{opacity:.7}
+.view{width:100%;height:420px;border-radius:10px;background:#081320;position:relative;overflow:hidden}
+.tip{position:absolute;pointer-events:none;background:#000d;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;display:none;z-index:9}
+footer{text-align:center;opacity:.6;font-size:12px;padding:18px}
+.hint{font-size:12px;opacity:.65}</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<header><h1>Grupo Vetor Brasil S.A. — Dashboard RH em 3D</h1>
+<p>300 funcionários • Gráficos 3D interativos com <b>Three.js</b> • Arraste para girar • Scroll para zoom • Passe o mouse nas barras</p></header>
+<div class="kpis" id="kpis"></div>
+<nav id="tabs"><button class="active" data-t="a">Departamentos 3D</button><button data-t="b">Salários 3D</button><button data-t="c">Turnover 3D</button><button data-t="d">Risco 3D (pizza)</button></nav>
+<main>
+<section class="tab active" id="t-a"><div class="card"><h3>Funcionários por departamento — Barras 3D</h3><small>Altura = nº de pessoas</small><div class="view" id="v-depto"></div><div class="hint">Arraste para orbitar. Hover mostra valores.</div></div></section>
+<section class="tab" id="t-b"><div class="card"><h3>Salário médio por departamento — Barras 3D</h3><small>Altura = R$ médio</small><div class="view" id="v-sal"></div></div></section>
+<section class="tab" id="t-c"><div class="card"><h3>Taxa de desligamento por departamento (%) — Barras 3D</h3><div class="view" id="v-turn"></div></div></section>
+<section class="tab" id="t-d"><div class="card"><h3>Risco de turnover — Pizza 3D</h3><small>Cilindro fatiado: Alto / Médio / Baixo</small><div class="view" id="v-risco"></div></div></section>
+</main>
+<footer>Three.js 3D • Fonte: RH_Grupo_Vetor_Brasil_300_funcionarios.xlsx (dados fictícios)</footer>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+const D = {"N": 300, "ativos": 256, "deslig": 44, "sal_media": 8318.64, "sat_media": 6.29, "f_depto": [{"k": "Vendas e Comercial", "v": 53}, {"k": "Tecnologia e Inovação", "v": 52}, {"k": "Marketing e Comunicação", "v": 40}, {"k": "Atendimento ao Cliente", "v": 36}, {"k": "Recursos Humanos", "v": 32}, {"k": "Finanças e Controladoria", "v": 29}, {"k": "Operações e Logística", "v": 22}, {"k": "Jurídico e Compliance", "v": 17}, {"k": "Pesquisa e Desenvolvimento", "v": 16}, {"k": "Diretoria Executiva", "v": 3}], "sal_depto": [{"k": "Diretoria Executiva", "v": 13461.0}, {"k": "Pesquisa e Desenvolvimento", "v": 12411.0}, {"k": "Finanças e Controladoria", "v": 10219.0}, {"k": "Tecnologia e Inovação", "v": 10111.0}, {"k": "Jurídico e Compliance", "v": 8389.0}, {"k": "Vendas e Comercial", "v": 7697.0}, {"k": "Marketing e Comunicação", "v": 7593.0}, {"k": "Recursos Humanos", "v": 7323.0}, {"k": "Atendimento ao Cliente", "v": 6051.0}, {"k": "Operações e Logística", "v": 5820.0}], "turn": [{"k": "Diretoria Executiva", "v": 33.3}, {"k": "Finanças e Controladoria", "v": 31.0}, {"k": "Recursos Humanos", "v": 21.9}, {"k": "Tecnologia e Inovação", "v": 15.4}, {"k": "Marketing e Comunicação", "v": 15.0}, {"k": "Operações e Logística", "v": 13.6}, {"k": "Vendas e Comercial", "v": 13.2}, {"k": "Atendimento ao Cliente", "v": 8.3}, {"k": "Pesquisa e Desenvolvimento", "v": 0.0}, {"k": "Jurídico e Compliance", "v": 0.0}], "risco": [{"k": "Médio", "v": 142}, {"k": "Baixo", "v": 100}, {"k": "Alto", "v": 58}], "nivel": [{"k": "Pleno", "v": 76}, {"k": "Júnior", "v": 58}, {"k": "Sênior", "v": 54}, {"k": "Estágio", "v": 50}, {"k": "Gerência", "v": 34}, {"k": "Coordenação", "v": 19}, {"k": "Assistente", "v": 7}, {"k": "Operacional", "v": 1}, {"k": "Diretoria", "v": 1}]};
+document.getElementById('kpis').innerHTML=[
+ [D.N,'Funcionários'],[D.ativos,'Ativos'],[(D.deslig/D.N*100).toFixed(1).replace('.',',')+'%','Turnover'],
+ ['R$ '+D.sal_media.toLocaleString('pt-BR'),'Salário médio'],[D.risco.find(x=>x.k==='Alto').v,'Risco Alto']
+].map(x=>`<div class="kpi"><b>${x[0]}</b><br><small>${x[1]}</small></div>`).join('');
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+ document.getElementById('t-'+b.dataset.t).classList.add('active');window.dispatchEvent(new Event('resize'));});
+function label(text){
+ const c=document.createElement('canvas');c.width=512;c.height=96;const g=c.getContext('2d');
+ g.fillStyle='#eaf2fa';g.font='bold 40px Segoe UI, Arial';g.textAlign='center';g.fillText(text.slice(0,28),256,60);
+ const t=new THREE.CanvasTexture(c);const m=new THREE.SpriteMaterial({map:t,transparent:true});
+ const s=new THREE.Sprite(m);s.scale.set(3.4,.64,1);return s;
+}
+function scene3(el){
+ const W=el.clientWidth||1000,H=420;
+ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(W,H);el.appendChild(renderer.domElement);
+ const scene=new THREE.Scene();scene.background=new THREE.Color(0x081320);
+ scene.add(new THREE.AmbientLight(0xffffff,.75));
+ const dl=new THREE.DirectionalLight(0xffffff,1.1);dl.position.set(6,10,7);scene.add(dl);
+ const cam=new THREE.PerspectiveCamera(50,W/H,.1,200);
+ const ctl=new OrbitControls(cam,renderer.domElement);ctl.enableDamping=true;
+ const tip=document.createElement('div');tip.className='tip';el.appendChild(tip);
+ const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let bars=[];
+ renderer.domElement.addEventListener('pointermove',e=>{
+  const r=renderer.domElement.getBoundingClientRect();
+  mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+  ray.setFromCamera(mouse,cam);const hit=ray.intersectObjects(bars)[0];
+  if(hit){tip.style.display='block';tip.style.left=(e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top-10)+'px';
+   tip.textContent=hit.object.userData.t;document.body.style.cursor='pointer';}
+  else{tip.style.display='none';document.body.style.cursor='default';}
+ });
+ return {renderer,scene,cam,ctl,register(m){bars.push(m);}};
+}
+function bars3(el,items,fmt,colA=0x1e90ff,colB=0x7cc4ff){
+ const {renderer,scene,cam,ctl,register}=scene3(el);
+ const mx=Math.max(...items.map(d=>d.v));
+ const n=items.length;cam.position.set(0,7,n*1.15+6);
+ ctl.target.set(0,1.5,0);
+ const grid=new THREE.GridHelper(n*1.4+4,12,0x254664,0x16324a);grid.position.y=0;scene.add(grid);
+ items.forEach((d,i)=>{
+  const h=Math.max(.3,d.v/mx*5);
+  const geo=new THREE.BoxGeometry(.8,h,.8);
+  const mat=new THREE.MeshStandardMaterial({color:i%2?colB:colA,roughness:.35,metalness:.15});
+  const m=new THREE.Mesh(geo,mat);const x=(i-(n-1)/2)*1.3;m.position.set(x,h/2,0);
+  m.userData.t=`${d.k}: ${fmt(d.v)}`;scene.add(m);register(m);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.25}));
+  edges.position.copy(m.position);scene.add(edges);
+  const lb=label(d.k);lb.position.set(x,0,.9);scene.add(lb);
+  const lv=label(fmt(d.v));lv.position.set(x,h+.5,0);lv.scale.set(2.2,.42,1);scene.add(lv);
+ });
+ (function anim(){requestAnimationFrame(anim);ctl.update();renderer.render(scene,cam);})();
+}
+function pie3(el,items){
+ const {renderer,scene,cam,ctl,register}=scene3(el);
+ cam.position.set(0,7,9);ctl.target.set(0,.6,0);
+ const colors={Alto:0xe15757,'Médio':0xf2b705,Baixo:0x37a26c};
+ const tot=items.reduce((a,b)=>a+b.v,0);let a0=0;
+ items.forEach(d=>{
+  const ang=(d.v/tot)*Math.PI*2;
+  const geo=new THREE.CylinderGeometry(2.6,2.6,1.1,48,1,false,a0,ang);
+  const mat=new THREE.MeshStandardMaterial({color:colors[d.k]??0x1e90ff,roughness:.4});
+  const m=new THREE.Mesh(geo,mat);m.userData.t=`${d.k}: ${d.v} (${(d.v/tot*100).toFixed(1).replace('.',',')}%)`;
+  scene.add(m);register(m);
+  const mid=a0+ang/2;
+  const lb=label(`${d.k} ${d.v}`);lb.position.set(Math.cos(mid)*3.4,1.2, -Math.sin(mid)*3.4);scene.add(lb);
+  a0+=ang;
+ });
+ const grid=new THREE.GridHelper(12,12,0x254664,0x16324a);grid.position.y=-.7;scene.add(grid);
+ (function anim(){requestAnimationFrame(anim);scene.rotation.y+=.003;ctl.update();renderer.render(scene,cam);})();
+}
+const br=v=>v.toLocaleString('pt-BR');
+bars3(document.getElementById('v-depto'),D.f_depto,v=>v+' pessoas');
+bars3(document.getElementById('v-sal'),D.sal_depto,v=>'R$ '+br(v),0x37a26c,0x7fe0a8);
+bars3(document.getElementById('v-turn'),D.turn,v=>String(v).replace('.',',')+'%',0xe15757,0xff9d9d);
+pie3(document.getElementById('v-risco'),D.risco);
+</script></body></html>
