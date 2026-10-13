@@ -28,6 +28,7 @@ Frases curtas. Sem adjetivos promocionais.")
 ## 4. Regras fixas
 
 PREENCHER
+- Comando "encerrar jarvis": ao receber, inspecionar git status/diff/log, commitar e dar push automaticamente, depois resumir o que subiu.
 (O que o agente nunca deve fazer. Escreva regras que poderiam de fato ser
 violadas. Exemplo: "Nunca inventar referencia bibliografica: se nao souber,
 escrever NAO SEI. Nunca apresentar numero sem dizer de onde veio. Nunca
