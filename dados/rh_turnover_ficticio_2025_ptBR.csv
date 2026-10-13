@@ -1,0 +1,88 @@
+﻿id_anonimo;tipo_movimentacao;data;area;cargo;gestor;unidade;vinculo;tempo_casa_meses;faixa_tempo_casa;tipo_desligamento;classificacao_funcional;motivo;desempenho_avaliacao
+ADM001;admissao;2025-11-04;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM002;admissao;2025-01-24;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM003;admissao;2025-05-08;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM004;admissao;2025-04-05;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM005;admissao;2025-12-04;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM006;admissao;2025-11-24;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM007;admissao;2025-09-03;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM008;admissao;2025-10-14;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM009;admissao;2025-01-01;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM010;admissao;2025-02-07;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM011;admissao;2025-04-17;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM012;admissao;2025-10-01;Comercial;Vendedor;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM013;admissao;2025-09-07;Comercial;SDR;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM014;admissao;2025-12-21;Comercial;SDR;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM015;admissao;2025-12-18;Comercial;SDR;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM016;admissao;2025-07-08;Comercial;SDR;G_COM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM017;admissao;2025-08-19;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM018;admissao;2025-05-26;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM019;admissao;2025-01-25;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM020;admissao;2025-03-23;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM021;admissao;2025-07-11;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM022;admissao;2025-05-05;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM023;admissao;2025-04-25;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM024;admissao;2025-06-04;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM025;admissao;2025-02-13;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM026;admissao;2025-02-12;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM027;admissao;2025-06-20;Operacoes;Tecnico;G_OPE_01;IMP;CLT;0;0-90d;NA;NA;NA;NA
+ADM028;admissao;2025-05-26;Operacoes;Tecnico;G_OPE_01;IMP;CLT;0;0-90d;NA;NA;NA;NA
+ADM029;admissao;2025-01-24;Operacoes;Tecnico;G_OPE_01;IMP;CLT;0;0-90d;NA;NA;NA;NA
+ADM030;admissao;2025-08-18;Administrativo;Assistente Adm;G_ADM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM031;admissao;2025-02-13;Administrativo;Assistente Adm;G_ADM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM032;admissao;2025-02-18;Administrativo;Assistente Adm;G_ADM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM033;admissao;2025-05-27;Administrativo;Assistente Adm;G_ADM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM034;admissao;2025-11-20;Administrativo;Assistente Adm;G_ADM_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM035;admissao;2025-06-19;TI;Analista Suporte;G_TI_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM036;admissao;2025-04-23;TI;Analista Suporte;G_TI_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM037;admissao;2025-02-02;TI;Analista Suporte;G_TI_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM038;admissao;2025-11-08;TI;Analista Suporte;G_TI_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM039;admissao;2025-05-03;Logistica;Motorista;G_LOG_01;IMP;CLT;0;0-90d;NA;NA;NA;NA
+ADM040;admissao;2025-04-28;Logistica;Motorista;G_LOG_01;IMP;CLT;0;0-90d;NA;NA;NA;NA
+ADM041;admissao;2025-02-13;Logistica;Motorista;G_LOG_01;IMP;CLT;0;0-90d;NA;NA;NA;NA
+ADM042;admissao;2025-05-15;Logistica;Motorista;G_LOG_01;IMP;CLT;0;0-90d;NA;NA;NA;NA
+ADM043;admissao;2025-11-27;Logistica;Conferente;G_LOG_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM044;admissao;2025-06-06;Logistica;Conferente;G_LOG_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+ADM045;admissao;2025-06-12;Logistica;Conferente;G_LOG_01;SLZ;CLT;0;0-90d;NA;NA;NA;NA
+DES001;desligamento;2025-05-22;Comercial;Vendedor;G_COM_01;SLZ;CLT;2;0-90d;voluntario;disfuncional;pedido - proposta salarial maior;alto
+DES002;desligamento;2025-06-23;Comercial;Vendedor;G_COM_01;SLZ;CLT;4;3-6m;voluntario;neutro;pedido - falta clareza metas;medio
+DES003;desligamento;2025-12-21;Comercial;Vendedor;G_COM_01;SLZ;CLT;5;3-6m;voluntario;neutro;pedido - onboarding fraco;medio
+DES004;desligamento;2025-03-20;Comercial;Vendedor;G_COM_01;SLZ;CLT;1;0-90d;voluntario;disfuncional;pedido - conflito lideranca;alto
+DES005;desligamento;2025-12-06;Comercial;Vendedor;G_COM_01;SLZ;CLT;7;6-12m;voluntario;disfuncional;pedido - plano carreira;alto
+DES006;desligamento;2025-10-24;Comercial;Vendedor;G_COM_01;SLZ;CLT;3;0-90d;voluntario;neutro;pedido - onboarding fraco;baixo
+DES007;desligamento;2025-05-06;Comercial;Vendedor;G_COM_01;SLZ;CLT;8;6-12m;voluntario;neutro;pedido - carga e pressao;medio
+DES008;desligamento;2025-09-13;Comercial;Vendedor;G_COM_01;SLZ;CLT;6;3-6m;voluntario;neutro;pedido - proposta salarial maior;medio
+DES009;desligamento;2025-06-21;Comercial;Vendedor;G_COM_01;SLZ;CLT;2;0-90d;voluntario;neutro;pedido - onboarding fraco;medio
+DES010;desligamento;2025-10-08;Comercial;Vendedor;G_COM_01;SLZ;CLT;9;6-12m;voluntario;disfuncional;pedido - falta clareza metas;alto
+DES011;desligamento;2025-12-11;Comercial;Vendedor;G_COM_01;SLZ;CLT;5;3-6m;voluntario;neutro;pedido - onboarding fraco;baixo
+DES012;desligamento;2025-02-08;Comercial;Vendedor;G_COM_01;SLZ;CLT;4;3-6m;voluntario;neutro;pedido - plano carreira;medio
+DES013;desligamento;2025-01-26;Comercial;Vendedor;G_COM_01;SLZ;CLT;14;1a+;involuntario;funcional;demissao - baixo desempenho;baixo
+DES014;desligamento;2025-06-13;Comercial;Vendedor;G_COM_01;SLZ;CLT;8;6-12m;involuntario;funcional;demissao - baixo desempenho;baixo
+DES015;desligamento;2025-05-03;Comercial;SDR;G_COM_01;SLZ;CLT;20;1a+;involuntario;funcional;demissao - justa causa faltas;baixo
+DES016;desligamento;2025-04-19;Comercial;Vendedor;G_COM_01;SLZ;CLT;5;3-6m;involuntario;funcional;demissao - baixo desempenho;baixo
+DES017;desligamento;2025-12-11;Comercial;Vendedor;G_COM_01;SLZ;CLT;11;6-12m;involuntario;neutro;demissao - reestruturacao;medio
+DES018;desligamento;2025-04-21;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;3;0-90d;voluntario;neutro;pedido - carga e turnos;medio
+DES019;desligamento;2025-08-13;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;2;0-90d;voluntario;neutro;pedido - proposta salarial maior;medio
+DES020;desligamento;2025-11-15;Operacoes;Tecnico;G_OPE_02;IMP;CLT;26;1a+;voluntario;disfuncional;pedido - plano carreira;alto
+DES021;desligamento;2025-03-09;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;15;1a+;involuntario;funcional;demissao - baixo desempenho;baixo
+DES022;desligamento;2025-03-08;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;9;6-12m;involuntario;funcional;demissao - baixo desempenho;baixo
+DES023;desligamento;2025-12-18;Administrativo;Assistente Adm;G_ADM_01;SLZ;CLT;30;1a+;voluntario;disfuncional;pedido - remuneracao;alto
+DES024;desligamento;2025-09-09;Administrativo;Assistente Adm;G_ADM_01;SLZ;CLT;4;3-6m;voluntario;neutro;pedido - conflito lideranca;medio
+DES025;desligamento;2025-12-19;Administrativo;Analista RH;G_ADM_01;SLZ;CLT;18;1a+;involuntario;neutro;demissao - reestruturacao;medio
+DES026;desligamento;2025-07-19;TI;Analista Suporte;G_TI_01;SLZ;CLT;7;6-12m;voluntario;disfuncional;pedido - proposta salarial maior;alto
+DES027;desligamento;2025-07-12;TI;Analista Suporte;G_TI_01;SLZ;CLT;3;0-90d;voluntario;neutro;pedido - onboarding fraco;medio
+DES028;desligamento;2025-04-05;TI;Dev Junior;G_TI_01;SLZ;CLT;40;1a+;involuntario;funcional;demissao - baixo desempenho;baixo
+DES029;desligamento;2025-09-16;Logistica;Motorista;G_LOG_01;IMP;CLT;22;1a+;voluntario;neutro;pedido - carga e turnos;medio
+DES030;desligamento;2025-02-25;Logistica;Conferente;G_LOG_01;SLZ;CLT;5;3-6m;voluntario;neutro;pedido - remuneracao;medio
+DES031;desligamento;2025-01-28;Logistica;Motorista;G_LOG_01;IMP;CLT;10;6-12m;involuntario;funcional;demissao - acidente recorrente;baixo
+DES032;desligamento;2025-02-05;Logistica;Conferente;G_LOG_01;SLZ;CLT;2;0-90d;involuntario;funcional;demissao - periodo experiencia;baixo
+DES033;desligamento;2025-11-06;Operacoes;Auxiliar Operacional;G_OPE_02;IMP;CLT;6;3-6m;voluntario;neutro;pedido - carga e turnos;medio
+DES034;desligamento;2025-11-14;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;48;1a+;voluntario;disfuncional;pedido - aposentadoria;medio
+DES035;desligamento;2025-10-03;Comercial;SDR;G_COM_02;SLZ;CLT;4;3-6m;voluntario;neutro;pedido - onboarding fraco;medio
+DES036;desligamento;2025-07-13;TI;Analista Suporte;G_TI_01;SLZ;CLT;14;1a+;voluntario;neutro;pedido - plano carreira;medio
+DES037;desligamento;2025-10-15;Administrativo;Assistente Adm;G_ADM_01;SLZ;CLT;8;6-12m;involuntario;funcional;demissao - baixo desempenho;baixo
+DES038;desligamento;2025-09-09;Logistica;Conferente;G_LOG_01;SLZ;CLT;16;1a+;involuntario;neutro;demissao - reestruturacao;medio
+DES039;desligamento;2025-06-15;TI;Estagiario;G_TI_01;SLZ;Estagiario;6;6-12m;voluntario;neutro;pedido - fim estagio;medio
+DES040;desligamento;2025-09-10;Administrativo;Jovem Aprendiz;G_ADM_01;SLZ;Temporario;4;3-6m;involuntario;neutro;termino contrato;medio
+DES041;desligamento;2025-03-20;Operacoes;Auxiliar Operacional;G_OPE_01;SLZ;CLT;12;6-12m;NA;NA;transferencia interna IMP->SLZ - NAO CONTA;medio
+DES042;desligamento;2025-11-05;Logistica;Conferente;G_LOG_01;SLZ;CLT;9;6-12m;NA;NA;transferencia interna SLZ->IMP - NAO CONTA;medio
