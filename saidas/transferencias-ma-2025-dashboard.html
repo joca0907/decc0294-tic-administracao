@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transferências MA 2025 x IBGE · Painel</title>
+<style>
+:root{--vinho:#8D0333;--dourado:#D4B277;--teal:#0AB0AB;--cinza:#E8E8E8;--txt:#1A1A1A;--muted:#6B6B6B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Calibri,Arial,sans-serif;background:#f2f2f2;color:#333;padding-bottom:48px}
+.filete{height:10px;background:var(--dourado)}
+header{background:var(--vinho);color:#fff;padding:28px 40px 24px}
+header .cod{font-size:13px;letter-spacing:.12em;color:var(--dourado);font-weight:700}
+header h1{font-size:30px;margin:6px 0}
+header p{color:#f1d9e2;font-size:15px;max-width:95ch}
+main{max-width:1080px;margin:24px auto;padding:0 20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.card{background:#fff;border:1px solid #e0e0e0;border-top:5px solid var(--vinho);padding:18px 20px}
+.card.teal{border-top-color:var(--teal)}
+.card .rot{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--vinho);text-transform:uppercase}
+.card .num{font-size:32px;font-weight:800;color:var(--txt);margin-top:6px}
+.card .num small{font-size:14px;font-weight:400;color:var(--muted)}
+.card .comp{font-size:14px;color:#555;margin-top:6px}
+.card .conc{font-size:14px;margin-top:10px;line-height:1.45}
+.card .per{font-size:12px;color:#777;margin-top:8px}
+.bloco{background:#fff;border:1px solid #e0e0e0;padding:22px 24px;margin-top:20px}
+.bloco h2{font-size:18px;color:var(--vinho);margin-bottom:4px}
+.bloco .sub{font-size:14px;color:var(--muted);margin-bottom:16px}
+.bar{display:grid;grid-template-columns:180px 1fr 130px;gap:10px;align-items:center;margin:9px 0}
+.bar .cat{font-size:14px;text-align:right;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .trilho{background:var(--cinza);height:26px;position:relative}
+.bar .ench{height:26px;background:var(--vinho)}
+.bar.dim .ench{background:#BDBDBD}
+.bar.tealx .ench{background:var(--teal)}
+.bar .val{font-size:14px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{background:var(--vinho);color:#fff;text-align:left;padding:9px 10px}
+td{padding:8px 10px;border-bottom:1px solid #eee;text-align:right}
+td:first-child,th:first-child{text-align:left}
+tr:nth-child(even) td{background:#fafafa}
+footer{max-width:1080px;margin:20px auto 0;padding:0 20px;font-size:13px;color:#777}
+.dest{background:#faf7f8;border:1px solid var(--dourado);padding:14px 18px;margin-top:20px;font-size:14px}
+code{background:#f4f4f4;padding:1px 6px;border-radius:4px;font-size:13px}
+@media(max-width:640px){.bar{grid-template-columns:110px 1fr 90px}header h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="filete"></div>
+<header>
+<p class="cod">TESOURO NACIONAL (ARIA) × IBGE (SIDRA 6579) · MARANHÃO</p>
+<h1>Top 10 repasses 2025: volume concentra, per capita inverte</h1>
+<p>São Luís lidera no total (R$ 1,89 bi) mas tem o menor per capita (R$ 1.732). Grajaú é o 10º no total e o 1º no per capita (R$ 3.736). Soma do Top 10: R$ 5,97 bilhões.</p>
+<p style="margin-top:8px;font-size:13px">Atualizado em 13/10/2026 · Ano civil 2025 completo (jan–dez) · Fontes no rodapé · CSV: saidas/transferencias-ma-2025-top10.csv</p>
+</header>
+<main>
+<div class="cards">
+<article class="card"><span class="rot">Maior volume</span><p class="num">1,89 <small>R$ bi</small></p><p class="comp">São Luís · 31,6% do Top 10</p><p class="conc">Capital concentra quase 2,5× o 2º colocado, mas dilui no per capita pela população de 1,09 mi.</p><p class="per">2025 · SIAFI 921 / IBGE 2111300 · ARIA + SIDRA</p></article>
+<article class="card teal"><span class="rot">Maior per capita</span><p class="num">3.736 <small>R$ / hab</small></p><p class="comp">Grajaú · 76.837 hab → R$ 287,1 mi</p><p class="conc">2,16× o per capita de São Luís. Efeito FPM interior: base populacional pequena com piso de repasse.</p><p class="per">2025 · SIAFI 793 / IBGE 2104800</p></article>
+<article class="card"><span class="rot">Soma Top 10</span><p class="num">5,97 <small>R$ bi</small></p><p class="comp">217 municípios apurados · 14.941 registros</p><p class="conc">2º ao 10º somam R$ 4,08 bi. Paço do Lumiar (R$ 3.247) e Codó (R$ 3.027) completam o pódio per capita.</p><p class="per">2025 · critério caixa · R$ 1,00</p></article>
+<article class="card"><span class="rot">Menor per capita do Top 10</span><p class="num">1.732 <small>R$ / hab</small></p><p class="comp">São Luís · seguido de Imperatriz: R$ 1.935</p><p class="conc">As duas maiores cidades têm os dois menores per capita: volume alto não significa mais recurso por habitante.</p><p class="per">2025 · pop. estimada 1º/jul · IBGE</p></article>
+</div>
+
+<section class="bloco">
+<h2>Total repassado 2025 — Top 10 MA (R$ milhões)</h2>
+<p class="sub">Barras ordenadas da maior para a menor. Base no zero. Barra em vinho = maior do conjunto.</p>
+<div class="bar"><span class="cat">São Luís</span><div class="trilho"><div class="ench" style="width:100%"></div></div><span class="val">1.886,6</span></div>
+<div class="bar dim"><span class="cat">S. J. de Ribamar</span><div class="trilho"><div class="ench" style="width:40.2%"></div></div><span class="val">758,1</span></div>
+<div class="bar dim"><span class="cat">Imperatriz</span><div class="trilho"><div class="ench" style="width:29.3%"></div></div><span class="val">553,1</span></div>
+<div class="bar dim"><span class="cat">Timon</span><div class="trilho"><div class="ench" style="width:26.8%"></div></div><span class="val">505,3</span></div>
+<div class="bar dim"><span class="cat">Paço do Lumiar</span><div class="trilho"><div class="ench" style="width:26.4%"></div></div><span class="val">497,3</span></div>
+<div class="bar dim"><span class="cat">Caxias</span><div class="trilho"><div class="ench" style="width:25.3%"></div></div><span class="val">477,5</span></div>
+<div class="bar dim"><span class="cat">Codó</span><div class="trilho"><div class="ench" style="width:19.0%"></div></div><span class="val">358,1</span></div>
+<div class="bar dim"><span class="cat">Açailândia</span><div class="trilho"><div class="ench" style="width:17.1%"></div></div><span class="val">322,9</span></div>
+<div class="bar dim"><span class="cat">Bacabal</span><div class="trilho"><div class="ench" style="width:16.9%"></div></div><span class="val">319,8</span></div>
+<div class="bar dim"><span class="cat">Grajaú</span><div class="trilho"><div class="ench" style="width:15.2%"></div></div><span class="val">287,1</span></div>
+</section>
+
+<section class="bloco">
+<h2>Repasse per capita 2025 — Top 10 MA (R$ / habitante)</h2>
+<p class="sub">Total ÷ população estimada IBGE 2025. Ordem do maior para o menor. Barra teal = maior per capita.</p>
+<div class="bar tealx"><span class="cat">Grajaú 3.736</span><div class="trilho"><div class="ench" style="width:100%"></div></div><span class="val">287,1 mi</span></div>
+<div class="bar tealx"><span class="cat">Paço do Lumiar 3.247</span><div class="trilho"><div class="ench" style="width:86.9%"></div></div><span class="val">497,3 mi</span></div>
+<div class="bar tealx"><span class="cat">Codó 3.027</span><div class="trilho"><div class="ench" style="width:81.0%"></div></div><span class="val">358,1 mi</span></div>
+<div class="bar tealx"><span class="cat">Bacabal 2.968</span><div class="trilho"><div class="ench" style="width:79.4%"></div></div><span class="val">319,8 mi</span></div>
+<div class="bar tealx"><span class="cat">S. J. de Ribamar 2.925</span><div class="trilho"><div class="ench" style="width:78.3%"></div></div><span class="val">758,1 mi</span></div>
+<div class="bar dim"><span class="cat">Caxias 2.920</span><div class="trilho"><div class="ench" style="width:78.1%"></div></div><span class="val">477,5 mi</span></div>
+<div class="bar dim"><span class="cat">Açailândia 2.919</span><div class="trilho"><div class="ench" style="width:78.1%"></div></div><span class="val">322,9 mi</span></div>
+<div class="bar dim"><span class="cat">Timon 2.765</span><div class="trilho"><div class="ench" style="width:74.0%"></div></div><span class="val">505,3 mi</span></div>
+<div class="bar dim"><span class="cat">Imperatriz 1.935</span><div class="trilho"><div class="ench" style="width:51.8%"></div></div><span class="val">553,1 mi</span></div>
+<div class="bar dim"><span class="cat">São Luís 1.732</span><div class="trilho"><div class="ench" style="width:46.4%"></div></div><span class="val">1.886,6 mi</span></div>
+</section>
+
+<section class="bloco">
+<h2>Tabela completa — cruzamento Tesouro × IBGE</h2>
+<p class="sub">Total = soma de todas as transferências (FPM, FUNDEB, Royalties, etc.) em 2025. Pop = estimativa IBGE 1º/jul/2025. Per capita = Total ÷ Pop.</p>
+<table>
+<thead><tr><th>#</th><th>Município</th><th>SIAFI</th><th>IBGE</th><th>Pop 2025</th><th>Total 2025 R$</th><th>Per capita R$</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>São Luís</td><td>921</td><td>2111300</td><td>1.089.215</td><td>1.886.552.172,52</td><td>1.732,03</td></tr>
+<tr><td>2</td><td>São José de Ribamar</td><td>889</td><td>2111201</td><td>259.164</td><td>758.094.124,26</td><td>2.925,15</td></tr>
+<tr><td>3</td><td>Imperatriz</td><td>803</td><td>2105302</td><td>285.806</td><td>553.052.559,05</td><td>1.935,06</td></tr>
+<tr><td>4</td><td>Timon</td><td>937</td><td>2112209</td><td>182.711</td><td>505.255.173,58</td><td>2.765,32</td></tr>
+<tr><td>5</td><td>Paço do Lumiar</td><td>849</td><td>2107506</td><td>153.158</td><td>497.277.220,82</td><td>3.246,82</td></tr>
+<tr><td>6</td><td>Caxias</td><td>757</td><td>2103000</td><td>163.546</td><td>477.504.926,54</td><td>2.919,70</td></tr>
+<tr><td>7</td><td>Codó</td><td>763</td><td>2103307</td><td>118.283</td><td>358.068.122,97</td><td>3.027,22</td></tr>
+<tr><td>8</td><td>Açailândia</td><td>961</td><td>2100055</td><td>110.611</td><td>322.899.091,53</td><td>2.919,23</td></tr>
+<tr><td>9</td><td>Bacabal</td><td>723</td><td>2101202</td><td>107.755</td><td>319.762.432,85</td><td>2.967,50</td></tr>
+<tr><td>10</td><td>Grajaú</td><td>793</td><td>2104800</td><td>76.837</td><td>287.080.605,56</td><td>3.736,23</td></tr>
+</tbody>
+</table>
+<div class="dest"><strong>Leitura para gestão:</strong> avaliar dependência de repasses pelo per capita, não só pelo total. Municípios menores do Top 10 recebem mais por habitante — planejar receita própria e FUNDEB por aluno continua crítico. São Luís e Imperatriz, com menor per capita, dependem mais de arrecadação própria.</div>
+</section>
+
+<section class="bloco">
+<h2>Como foi apurado (reprodutível)</h2>
+<p class="sub">Tesouro: <code>GET aria/v1/transferencias_constitucionais/custom/por_estado_municipio?p_estado=10&amp;p_ano=2025&amp;pageSize=10000</code> — págs 1–2 = 14.941 registros, 217 municípios, soma por <code>codigo_siafi</code>. IBGE: <code>GET apisidra.ibge.gov.br/values/t/6579/n6/{IBGE}/v/9324/p/2025</code> — tabela 6579 Estimativas de População. Per capita = total / pop. Ex. São Luís jan/2025 FPM R$ 73,09 mi conferido no endpoint por município.</p>
+</section>
+</main>
+<footer>
+Fontes: (1) Tesouro Nacional — API Transferências Constitucionais ARIA + Tesouro Transparente CKAN <code>transferencias-constitucionais-para-municipios</code>; (2) IBGE — SIDRA tabela 6579 variável 9324 + <code>servicodados.ibge.gov.br/api/v1/localidades/municipios/{id}</code>. Critério caixa, R$ 1,00, série desde 01/1997. Acentos da API ARIA voltam com encoding falho — códigos SIAFI/IBGE conferem. Gerado em 13/10/2026.
+</footer>
+</body>
+</html>
