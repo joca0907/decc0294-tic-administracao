@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PAM 2025 · Maranhão · Painel</title>
+<style>
+:root{--vinho:#8D0333;--dourado:#D4B277;--teal:#0AB0AB;--cinza:#E8E8E8;--txt:#1A1A1A;--muted:#6B6B6B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Calibri,Arial,sans-serif;background:#f2f2f2;color:#333;padding-bottom:48px}
+.filete{height:10px;background:var(--dourado)}
+header{background:var(--vinho);color:#fff;padding:28px 40px 24px}
+header .cod{font-size:13px;letter-spacing:.12em;color:var(--dourado);font-weight:700}
+header h1{font-size:30px;margin:6px 0}
+header p{color:#f1d9e2;font-size:15px;max-width:90ch}
+main{max-width:1080px;margin:24px auto;padding:0 20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.card{background:#fff;border:1px solid #e0e0e0;border-top:5px solid var(--vinho);padding:18px 20px}
+.card.teal{border-top-color:var(--teal)}
+.card .rot{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--vinho);text-transform:uppercase}
+.card .num{font-size:34px;font-weight:800;color:var(--txt);margin-top:6px}
+.card .num small{font-size:14px;font-weight:400;color:var(--muted)}
+.card .comp{font-size:14px;color:#555;margin-top:6px}
+.card .conc{font-size:14px;margin-top:10px;line-height:1.45}
+.card .per{font-size:12px;color:#777;margin-top:8px}
+.bloco{background:#fff;border:1px solid #e0e0e0;padding:22px 24px;margin-top:20px}
+.bloco h2{font-size:18px;color:var(--vinho);margin-bottom:4px}
+.bloco .sub{font-size:14px;color:var(--muted);margin-bottom:16px}
+.bar{display:grid;grid-template-columns:170px 1fr 130px;gap:10px;align-items:center;margin:9px 0}
+.bar .cat{font-size:14px;text-align:right;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .trilho{background:var(--cinza);height:26px;position:relative}
+.bar .ench{height:26px;background:var(--vinho)}
+.bar.dim .ench{background:#BDBDBD}
+.bar.tealx .ench{background:var(--teal)}
+.bar .val{font-size:14px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{background:var(--vinho);color:#fff;text-align:left;padding:9px 10px}
+td{padding:8px 10px;border-bottom:1px solid #eee;text-align:right}
+td:first-child,th:first-child{text-align:left}
+tr:nth-child(even) td{background:#fafafa}
+.pos{color:var(--vinho);font-weight:700}.neg{color:#0a7c78;font-weight:700}
+footer{max-width:1080px;margin:20px auto 0;padding:0 20px;font-size:13px;color:#777}
+.dest{background:#faf7f8;border:1px solid var(--dourado);padding:14px 18px;margin-top:20px;font-size:14px}
+@media(max-width:640px){.bar{grid-template-columns:110px 1fr 90px}header h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="filete"></div>
+<header>
+<p class="cod">PAM · PRODUÇÃO AGRÍCOLA MUNICIPAL · IBGE/SIDRA TABELA 5457</p>
+<h1>Maranhão 2025: soja e milho concentram 85% do valor</h1>
+<p>Valor total R$ 13,94 bilhões, +7,4% sobre 2024. Crescimento veio de soja (+8,6%) e milho (+13,8%) em quantidade. Cana recuou 4,5%.</p>
+<p style="margin-top:8px;font-size:13px">Atualizado em 13/10/2026 · Período: ano civil 2025, comparador 2024 · Fonte no rodapé</p>
+</header>
+<main>
+<div class="cards">
+<article class="card"><span class="rot">Valor da produção</span><p class="num">13,94 <small>R$ bi</small></p><p class="comp">contra 2024: <strong>12,97 R$ bi</strong> <span class="pos">+7,4%</span></p><p class="conc">O aumento nominal é puxado por preço e volume de soja e milho.</p><p class="per">2025 · Mil Reais · SIDRA 5457 var.215 cat.0 N3[21]</p></article>
+<article class="card"><span class="rot">Soja em grão</span><p class="num">4,42 <small>Mt</small></p><p class="comp">contra 2024: <strong>4,07 Mt</strong> <span class="pos">+8,6%</span></p><p class="conc">64% do valor do estado. 1,37 M ha a 3.221 kg/ha.</p><p class="per">2025 · Toneladas · var.214 cat.40124</p></article>
+<article class="card teal"><span class="rot">Milho em grão</span><p class="num">2,71 <small>Mt</small></p><p class="comp">contra 2024: <strong>2,38 Mt</strong> <span class="pos">+13,8%</span></p><p class="conc">21,3% do valor. Rendimento 5.059 kg/ha, o maior entre grãos.</p><p class="per">2025 · Toneladas · var.214 cat.40122</p></article>
+<article class="card"><span class="rot">Concentração</span><p class="num">85,3 <small>% do valor</small></p><p class="comp">soja + milho somados no valor total</p><p class="conc">Mandioca, arroz e feijão ocupam área relevante com valor baixo: dualidade tecnificada x familiar.</p><p class="per">2025 · cálculo sobre var.215</p></article>
+</div>
+<section class="bloco">
+<h2>Valor da produção por cultura — Maranhão 2025 (R$ milhões)</h2>
+<p class="sub">Barras ordenadas da maior para a menor. Base no zero. A barra em vinho é a maior do conjunto.</p>
+<div class="bar"><span class="cat">Soja</span><div class="trilho"><div class="ench" style="width:100%"></div></div><span class="val">8.921</span></div>
+<div class="bar dim"><span class="cat">Milho</span><div class="trilho"><div class="ench" style="width:33.4%"></div></div><span class="val">2.976</span></div>
+<div class="bar dim"><span class="cat">Cana-de-açúcar</span><div class="trilho"><div class="ench" style="width:8.7%"></div></div><span class="val">779</span></div>
+<div class="bar dim"><span class="cat">Arroz</span><div class="trilho"><div class="ench" style="width:3.4%"></div></div><span class="val">306</span></div>
+<div class="bar dim"><span class="cat">Algodão herbáceo</span><div class="trilho"><div class="ench" style="width:3.4%"></div></div><span class="val">300</span></div>
+<div class="bar dim"><span class="cat">Mandioca</span><div class="trilho"><div class="ench" style="width:2.6%"></div></div><span class="val">231</span></div>
+<div class="bar dim"><span class="cat">Banana</span><div class="trilho"><div class="ench" style="width:1.6%"></div></div><span class="val">139</span></div>
+<div class="bar dim"><span class="cat">Feijão</span><div class="trilho"><div class="ench" style="width:1.4%"></div></div><span class="val">122</span></div>
+<p class="sub" style="margin:12px 0 0">Participação no Brasil 2025 (qtd): soja MA 2,7% (165,3 Mt BR), milho 1,9% (141,2 Mt BR), mandioca 1,9%, arroz 1,4%.</p>
+</section>
+<section class="bloco">
+<h2>Variação da quantidade 2024 → 2025 (%)</h2>
+<p class="sub">Sorgo lidera em % sobre base pequena; milho e soja lideram em toneladas absolutas.</p>
+<div class="bar tealx"><span class="cat">Sorgo +30,1%</span><div class="trilho"><div class="ench" style="width:100%"></div></div><span class="val">32,6 mil t</span></div>
+<div class="bar tealx"><span class="cat">Milho +13,8%</span><div class="trilho"><div class="ench" style="width:45.8%"></div></div><span class="val">2,71 Mt</span></div>
+<div class="bar tealx"><span class="cat">Feijão +8,7%</span><div class="trilho"><div class="ench" style="width:28.9%"></div></div><span class="val">29,3 mil t</span></div>
+<div class="bar tealx"><span class="cat">Soja +8,6%</span><div class="trilho"><div class="ench" style="width:28.6%"></div></div><span class="val">4,42 Mt</span></div>
+<div class="bar dim"><span class="cat">Arroz +1,7%</span><div class="trilho"><div class="ench" style="width:5.6%"></div></div><span class="val">180 mil t</span></div>
+<div class="bar dim"><span class="cat">Algodão +1,4%</span><div class="trilho"><div class="ench" style="width:4.6%"></div></div><span class="val">136 mil t</span></div>
+<div class="bar dim"><span class="cat">Mandioca −2,0%</span><div class="trilho"><div class="ench" style="width:6.6%"></div></div><span class="val">370 mil t</span></div>
+<div class="bar dim"><span class="cat">Cana −4,5%</span><div class="trilho"><div class="ench" style="width:14.9%"></div></div><span class="val">2,58 Mt</span></div>
+</section>
+<section class="bloco">
+<h2>Tabela completa — quantidade, área, rendimento e valor</h2>
+<p class="sub">Ordenada por quantidade 2025. Rendimento = kg/ha (var.112). Área colhida = ha (var.216).</p>
+<table>
+<thead><tr><th>Cultura</th><th>Qtd 2025 (t)</th><th>Qtd 2024 (t)</th><th>Var %</th><th>Área (ha)</th><th>Rend.</th><th>Valor (R$ mil)</th></tr></thead>
+<tbody>
+<tr><td>Soja</td><td>4.423.088</td><td>4.073.259</td><td class="pos">+8,6</td><td>1.373.014</td><td>3.221</td><td>8.921.025</td></tr>
+<tr><td>Milho</td><td>2.712.134</td><td>2.384.065</td><td class="pos">+13,8</td><td>536.066</td><td>5.059</td><td>2.975.809</td></tr>
+<tr><td>Cana-de-açúcar</td><td>2.583.724</td><td>2.705.753</td><td class="neg">−4,5</td><td>45.890</td><td>56.303</td><td>778.886</td></tr>
+<tr><td>Mandioca</td><td>370.376</td><td>377.827</td><td class="neg">−2,0</td><td>47.052</td><td>7.872</td><td>230.614</td></tr>
+<tr><td>Arroz</td><td>180.334</td><td>177.340</td><td class="pos">+1,7</td><td>73.590</td><td>2.451</td><td>305.535</td></tr>
+<tr><td>Algodão herbáceo</td><td>135.690</td><td>133.815</td><td class="pos">+1,4</td><td>32.996</td><td>4.112</td><td>299.591</td></tr>
+<tr><td>Banana</td><td>78.718</td><td>–</td><td>–</td><td>–</td><td>–</td><td>139.008</td></tr>
+<tr><td>Sorgo</td><td>32.592</td><td>25.059</td><td class="pos">+30,1</td><td>14.773</td><td>2.206</td><td>18.847</td></tr>
+<tr><td>Feijão</td><td>29.310</td><td>26.970</td><td class="pos">+8,7</td><td>44.795</td><td>654</td><td>121.969</td></tr>
+<tr><td>Melancia</td><td>25.763</td><td>–</td><td>–</td><td>–</td><td>–</td><td>35.735</td></tr>
+</tbody>
+</table>
+<p class="sub" style="margin-top:10px">Toneladas de produtos diferentes não se somam. O total válido é o de valor (var.215 cat.0): R$ 13.936.879 mil em 2025.</p>
+</section>
+<div class="dest"><strong>Destinatário:</strong> gestor estadual / coordenação de política agrícola.<br><strong>Decisão que sustenta:</strong> priorizar logística e armazenagem no eixo soja-milho do Sul do MA sem desassistir mandioca-arroz-feijão.</div>
+</main>
+<footer>
+De onde vem cada número: IBGE SIDRA tabela 5457 via servicodados.ibge.gov.br/api/v3/agregados/5457/periodos/{2025,2024}/variaveis/{214=quantidade, 215=valor, 216=área, 112=rendimento} localidades N3[21] Maranhão, classificação 782 por produto. Valores nominais em Mil Reais. Arquivo único, sem dependência de rede.
+</footer>
+</body>
+</html>
