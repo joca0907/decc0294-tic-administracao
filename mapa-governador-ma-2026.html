@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eleições 2026 — Governador do Maranhão | Mapa coroplético (API TSE)</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  html, body { margin:0; padding:0; height:100%; font-family: system-ui, 'Segoe UI', Arial, sans-serif; background:#0f172a; }
+  #app { display:flex; flex-direction:column; height:100%; }
+  header { background:#1f2a44; color:#fff; padding:10px 16px; border-bottom:3px solid #0a9c66; }
+  header h1 { font-size:1.05rem; margin:0 0 2px; }
+  header .sub { font-size:.75rem; color:#c8d4e8; }
+  header .sub a { color:#8fd0ff; text-decoration:none; }
+  #toolbar { position:absolute; top:10px; right:10px; z-index:1200; display:flex; gap:6px; }
+  .btn { background:#fff; border:1px solid #94a3b8; border-radius:6px; padding:6px 10px; font-size:.75rem; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.3); }
+  .btn:hover { background:#eef2f7; }
+  .btn.active { background:#0a9c66; color:#fff; border-color:#0a9c66; }
+  #map { flex:1; }
+  #status { position:absolute; bottom:0; left:0; right:0; z-index:1200; background:rgba(15,23,42,.92);
+            color:#fff; font-size:.75rem; padding:6px 12px; display:flex; align-items:center; gap:10px; }
+  #bar { height:6px; background:#334155; border-radius:3px; flex:1; overflow:hidden; }
+  #bar > i { display:block; height:100%; width:0%; background:#0a9c66; transition:width .2s; }
+  #hud { position:absolute; top:10px; left:10px; z-index:1200; background:#fff; border-radius:8px;
+         padding:10px 14px; min-width:230px; max-width:320px; box-shadow:0 2px 10px rgba(0,0,0,.35);
+         font-size:.78rem; color:#111; display:none; }
+  #hud h2 { font-size:.8rem; margin:0 0 6px; }
+  #hud .tot { color:#555; font-size:.72rem; margin-bottom:8px; }
+  #hud table { width:100%; border-collapse:collapse; }
+  #hud td { padding:2px 4px; font-size:.72rem; }
+  #hud td.num { text-align:right; white-space:nowrap; }
+  #hud .sw { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+  #hud .venc { font-weight:700; }
+  .lgl { font-size:.72rem; }
+  .leaflet-container { background:#dbe9f4; }
+  .sem-dados-tip { color:#666; font-style:italic; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Eleições 2026 · Governador do Maranhão · 1º turno — mapa coroplético por município</h1>
+    <div class="sub">Fonte dos resultados: <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">API oficial de divulgação do TSE</a> · Malha municipal: IBGE (servicodados.ibge.gov.br) · Fechado em <span id="dghg">…</span></div>
+  </header>
+  <div id="map"></div>
+  <div id="toolbar">
+    <button class="btn active" id="btn-party" title="Cores por candidato vencedor">Vencedor</button>
+    <button class="btn" id="btn-share" title="Intensidade = % de votos válidos do vencedor">% do vencedor</button>
+    <button class="btn" id="btn-reload" title="Baixar dados novamente do TSE">Atualizar</button>
+  </div>
+  <div id="hud"></div>
+  <div id="status"><span id="sttxt">Carregando dados do TSE…</span><div id="bar"><i></i></div></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  /* ========================= PARÂMETROS DA API TSE =========================
+     Padrão da API oficial de resultados (comprovado no app públicos do TSE):
+     config municipios : {base}/{ciclo}/{eleicao}/config/mun-e{eleicao}-cm.json
+     resumo estadual   : {base}/{ciclo}/{eleicao}/dados/{uf}/{uf}-c{cargo}-e{eleicao}-u.json
+     resumo municipal  : {base}/{ciclo}/{eleicao}/dados/{uf}/{uf}{cdMun}-c{cargo}-e{eleicao}-u.json */
+  var BASE   = 'https://resultados.tse.jus.br/oficial';
+  var CICLO  = 'ele2026';
+  var UF     = 'ma';
+  var CD_ELE_ALVO = '6259'; // Eleição Ordinária Estadual 2026 - 1º turno (derivada do ele-c.json)
+  var CD_CARGO_ALVO = '3';  // Governador
+  var nocache = 0;
+
+  function urlNoCache(u){ return u + (u.indexOf('?')>=0 ? '&' : '?') + 'nocache=' + (nocache||Date.now()); }
+
+  /*Representações de recurso por sigla de partido (fallback por nome).*/
+  var CORES_PARTIDO = {
+    'PT':'#e35555','MDB':'#ef9420','PSD':'#3f8ec9','PRTB':'#9567cd','MISSÃO':'#2fa1a1',
+    'PSTU':'#d0638d','PCB':'#8a6d4e','PCO':'#7f8fa0','PSOL':'#EFBF04','REPUBLICANOS':'#40b7ec',
+    'PL':'#1861a8','UNIÃO':'#20558b','PP':'#2e6d99','PSDB':'#0d50b2','CIDADANIA':'#3aa76d'
+  };
+  var PALETA_EXTRA = ['#B03A83','#0E7C7B','#C1641E','#5B8C00',
+                      '#7E57C2','#455A64','#AD1457','#5C6BC0','#00897B','#8D6E63'];
+
+  var mapa = L.map('map', { zoomControl:true }).setView([-5.2, -45.5], 6);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution:'&copy; OpenStreetMap contribuidores &copy; CARTO', subdomains:'abcd', maxZoom:19
+  }).addTo(mapa);
+  var camada = null;
+
+  var estado = { candidatos:[], porSqcand:{}, modo:'party', geojsonOrig:null, porCd:{}, dghg:'' };
+
+  function sttxt(s){ document.getElementById('sttxt').textContent = s; }
+  function progresso(f){
+    document.querySelector('#bar > i').style.width = Math.round(f*100) + '%';
+  }
+
+  function paleta(i){ return PALETA_EXTRA[i % PALETA_EXTRA.length]; }
+
+  function corPartido(sg){
+    var s = (sg||'').toUpperCase();
+    if (CORES_PARTIDO[s]) return CORES_PARTIDO[s];
+    for (var k in CORES_PARTIDO) if (s.indexOf(k)>=0) return CORES_PARTIDO[k];
+    return paleta(Object.keys(estado.porSqcand).length);
+  }
+
+  function nomeComSigla(c){ return c.nm + (c.sg ? ' (' + c.sg + ')' : ''); }
+
+  /* Extrai candidatos dedup por sqcand (federações repetem o mesmo candidato). */
+  function candidatosDe(j, cargo){
+    var out = new Map();
+    (j.carg||[]).filter(function(c){ if(cargo) return String(c.cd)===String(cargo); return true; })
+    .forEach(function(c){
+      (c.agr||[]).forEach(function(a){
+        (a.par||[]).forEach(function(p){
+          (p.cand||[]).forEach(function(cd){
+            var k = cd.sqcand, v = +(cd.vap||0);
+            var m = out.get(k);
+            if(!m) out.set(k, { sqcand:k, nm:cd.nmu||cd.nm||('Cand. '+k), sg:(cd.sgp||p.sg||a.com||'').toUpperCase(),
+                                st:cd.st||'', e:cd.e||'', vap:v, pvap:cd.pvap||'',
+                                vices:(cd.vs||[]).map(function(v){return v.nmu;}).join(' + ') });
+            else {
+              if(v > m.vap){ m.vap = v; m.st = cd.st||m.st; m.e = cd.e||m.e; m.pvap = cd.pvap||m.pvap; }
+              m.sg = m.sg || (cd.sgp||p.sg||a.com||'').toUpperCase();
+            }
+          });
+        });
+      });
+    });
+    return out;
+  }
+
+  function numBR(s){
+    return (s==null?'0':String(s)).replace('.',',');
+  }
+  /* Percentual oficial do TSE (pvap, ex.: "54,02") — base válidos + anulados sub judice. */
+  function pctOficial(c, base){
+    if(c && c.pvap){ var v = parseFloat(String(c.pvap).replace(',', '.')); if(!isNaN(v)) return v; }
+    return (c && base) ? c.vap*100/base : 0;
+  }
+  function letras(n){
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  function carregarJSON(u, opt){
+    return fetch(urlNoCache(u), opt).then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status + ' — ' + u);
+      return r.json();
+    });
+  }
+
+  /* 1) Resolve códigos (eleicao/cargo via ele-c.json; fallback para constantes). */
+  function resolveCodigos(){
+    return fetch(urlNoCache(BASE + '/comum/config/ele-c.json'))
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(geral){
+        var cdEle = CD_ELE_ALVO, cargo = CD_CARGO_ALVO;
+        try {
+          var pleito = geral.pl.find(function(p){ return p.c === CICLO && (p.e||[]).some(function(e){ return e.nm.indexOf('Ordinária Estadual')>=0 && e.t==='1'; }); });
+          var eEl    = pleito.e.find(function(e){ return e.nm.indexOf('Ordinária Estadual')>=0 && e.t==='1'; });
+          cdEle  = eEl.cd;
+          cargo  = (eEl.abr[0].cp.find(function(cp){ return /Governador/i.test(cp.ds); }) || eEl.abr[0].cp[0]).cd;
+        } catch(err){ /* usa valores padrão */ }
+        return { cdEle:cdEle, cargo:cargo };
+      })
+      .catch(function(){ return { cdEle:CD_ELE_ALVO, cargo:CD_CARGO_ALVO }; });
+  }
+
+  /* 2) Malha municipal do estado (IBGE). cdi do TSE casa com codarea do shape. */
+  function carregarMalhaUF(){
+    var urls = [
+      'https://servicodados.ibge.gov.br/api/v3/malhas/estados/21?formato=application/vnd.geo%2bjson&intrarregiao=municipio&qualidade=intermediaria',
+      'https://servicodados.ibge.gov.br/api/v3/malhas/estados/21?formato=application/vnd.geo%2bjson&intrarregiao=municipio'
+    ];
+    var i = 0;
+    function tentativa(){
+      return fetch(urls[i]).then(function(r){
+        if(!r.ok) throw 0;
+        return r.json();
+      }).catch(function(){ i++; if(i < urls.length) return tentativa(); throw new Error('Falha ao obter a malha do IBGE'); });
+    }
+    return tentativa();
+  }
+
+  function corDoMundo(cd){
+    var info = estado.porCd[cd];
+    if(!info || !info.vencedor) return '#9e9e9e';
+    if(estado.modo === 'party') return corPartido(info.vencedor.sg);
+    var p = Math.min(info.pcVenc, 100);
+    var t = (p - 25) / 60;  // 25%..85% mapeados em 0..1
+    t = Math.max(0, Math.min(1, t));
+    return mezclar('#fefce8', '#b91c1c', t);
+  }
+  function mezclar(a, b, t){
+    var A = parseInt(a.slice(1),16), B = parseInt(b.slice(1),16);
+    var ar=(A>>16)&255, ag=(A>>8)&255, ab=A&255, br=(B>>16)&255, bg=(B>>8)&255, bb=B&255;
+    var r=Math.round(ar+(br-ar)*t), g=Math.round(ag+(bg-ag)*t), bl=Math.round(ab+(bb-ab)*t);
+    return 'rgb(' + r + ',' + g + ',' + bl + ')';
+  }
+  function opacidade(cd){
+    var info = estado.porCd[cd];
+    if(!info || !info.vencedor) return 0.75;
+    if(estado.modo === 'party'){
+      var p = Math.min(info.pcVenc, 100);
+      var t = Math.max(0, Math.min(1, (p - 30)/50)); // 30..80% -> 0..1
+      return 0.35 + 0.60*t;
+    }
+    return 0.9;
+  }
+
+  function montarCamada(geojson){
+    if(camada) map.removeLayer(camada);
+    camada = L.geoJSON(geojson, {
+      style: function(f){
+        var cd = f.properties.codarea;
+        return { fillColor: corDoMundo(cd), fillOpacity: opacidade(cd), color:'#3f4a5a', weight:0.7 };
+      },
+      onEachFeature: function(f, layer){
+        layer.bindTooltip(function(){ return tipMunicipio(f.properties.codarea); }, {sticky:true});
+        layer.on('mouseover', function(){ layer.setStyle({weight:2.2, color:'#111'}); });
+        layer.on('mouseout',  function(){ layer.setStyle({weight:0.7, color:'#3f4a5a'}); });
+      }
+    }).addTo(map);
+    finalizarHUD();
+    document.getElementById('status').style.display = 'none';
+  }
+
+  function tipMunicipio(cd){
+    var info = estado.porCd[cd];
+    if(!info) return '<b>Município sem dados</b><br><span class="sem-dados-tip">Votação indisponível na API</span>';
+    var nomes = info.nm;
+    var h = '<b>' + nomes + '</b><br>'
+          + 'Comparecimento: ' + letras(info.comparecimento) + ' eleitores<br>'
+          + '<u>Governador — top 5</u><br>';
+    info.top5.forEach(function(c, i){
+      var sw = '<span class="sw" style="background:' + corPartido(c.sg) + '"></span>';
+      h += (i===0 ? sw + '<b>' : sw) + nomeComSigla(c) +
+           (i===0 ? '</b> — <b>' : ' — ') + numBR(c.pc.toFixed(1)) + '%</b><br>' ;
+    });
+    return h;
+  }
+
+  function finalizarHUD(){
+    var venc = estado.candidatos[0];
+    var hud = document.getElementById('hud');
+    hud.style.display = 'block';
+    var linhas = estado.candidatos.map(function(c, i){
+      var sw = '<span class="sw" style="background:' + corPartido(c.sg) + '"></span>';
+      return '<tr><td style="width:12px">' + (i+1) + '.</td>' +
+             '<td>' + sw + '<span class="' + (c.e==='s' ? 'venc' : '') + '">' + nomeComSigla(c) + '</span>' +
+             (c.e==='s' ? ' <b>· eleito</b>' : '') + '</td>' +
+             '<td class="num">' + letras(c.vap) + '</td>' +
+             '<td class="num" style="width:52px">' + numBR(c.pc.toFixed(1)) + '%</td></tr>';
+    }).join('');
+    hud.innerHTML = '<h2>Governador do ' + 'Maranhão — apuração final</h2>' +
+                    '<div class="tot">Votos válidos: ' + letras(estado.vv) + ' · comparecimento: ' + letras(estado.comparecimento) + ' (' + numBR(estado.pcComp) + '%) · em ' + estado.dghg + '</div>' +
+                    '<table>' + linhas + '</table>' +
+                    '<div style="margin-top:6px;font-size:.7rem;color:#555">Passe o cursor sobre os municípios. “Vencedor” colore pelo primeiro colocado; “% do vencedor” pela força do primeiro colocado.</div>';
+  }
+
+  /* ===================== FLUXO PRINCIPAL ===================== */
+  Promise.resolve()
+   .then(function(){ sttxt('Lendo tabela de pleitos do TSE…'); return resolveCodigos(); })
+   .then(function(id){
+     estado.cdEle = id.cdEle; estado.cargo = id.cargo;
+     var pad6 = String(id.cdEle).padStart(6,'0');
+     estado.pad6 = pad6;
+     sttxt('Lendo config de municípios do TSE…');
+     return carregarJSON(BASE + '/' + CICLO + '/' + id.cdEle + '/config/mun-e' + pad6 + '-cm.json')
+       .then(function(cfg){
+         var ma = cfg.abr.find(function(a){ return a.cd === UF; });
+         if(!ma) throw new Error('UF ' + UF.toUpperCase() + ' não encontrada na config');
+         return { muni: ma.mu, cd: id.cdEle, cargo: id.cargo };
+       });
+   })
+   .then(function(info){
+     sttxt('Lendo resumo estadual…');
+     estado.muniInfo = info;
+     return carregarJSON(BASE + '/' + CICLO + '/' + info.cd + '/dados/ma/ma-c000' + info.cargo + '-e' + estado.pad6 + '-u.json');
+   })
+   .then(function(jEst){
+     estado.dghg = jEst.dg + ' às ' + jEst.ht;
+     document.getElementById('dghg').textContent = estado.dghg;
+     var cs = candidatosDe(jEst, estado.cargo);
+     var vv = +jEst.v.vnom || 0;
+     estado.candidatos = Array.from(cs.values()).sort(function(a,b){ return b.vap - a.vap; });
+     estado.candidatos.forEach(function(c){ c.pc = pctOficial(c, +jEst.v.vvc || 0); });
+     estado.porSqcand = {};
+     estado.candidatos.forEach(function(c, i){ estado.porSqcand[c.sqcand] = i; });
+     estado.vv = vv;
+     estado.comparecimento = +jEst.s.si || 0;
+     estado.pcComp = +jEst.e.pc || 0;
+
+     sttxt('Baixando votação municipal (0/' + estado.muniInfo.muni.length + ')…');
+     var fila = estado.muniInfo.muni.slice();
+     var baixados = 0, falhas = [];
+     var CONC = 12;
+     function worker(){
+       return new Promise(function(done){
+         function proximo(){
+           if(!fila.length) return done();
+           var m = fila.shift();
+           var u = BASE + '/' + CICLO + '/' + estado.muniInfo.cd + '/dados/ma/ma' + m.cd +
+                   '-c000' + estado.muniInfo.cargo + '-e' + estado.pad6 + '-u.json';
+           carregarJSON(u).then(function(j){
+             try { registrarMunicipio(m, j); }
+             catch(e){ falhas.push(m.nm); }
+           }).catch(function(){ falhas.push(m.nm); })
+           .then(function(){
+             baixados++; progcalc(baixados, estado.muniInfo.muni.length);
+             proximo();
+           });
+         }
+         proximo();
+       });
+     }
+     function progcalc(n, t){
+       progresso(n/t);
+       sttxt('Baixando votação municipal (' + n + '/' + t + ')' + (falhas.length ? ' · ' + falhas.length + ' sem dados' : ''));
+     }
+     return Promise.all(Array.from({length:CONC}, worker)).then(function(){ return falhas; });
+   })
+   .then(function(falhas){
+     if(falhas.length) estado.falhas = falhas;
+     sttxt('Lendo malha municipal do IBGE…');
+     progresso(0.998);
+     return carregarMalhaUF();
+   })
+
+   .then(function(geo){
+     estado.geojsonOrig = geo;
+     sttxt('Renderizando mapa…');
+     setTimeout(function(){ montarCamada(geo); }, 30);
+   })
+   .catch(function(err){
+     sttxt('');
+     document.getElementById('sttxt').innerHTML = '<span style="color:#ff8a8a">Erro: ' + (err && err.message ? err.message : err) + '</span>';
+   });
+
+  function registrarMunicipio(m, j){
+    var cs = Array.from(candidatosDe(j, estado.cargo).values()).sort(function(a,b){ return b.vap - a.vap; });
+    var vv = +j.v.vnom || 0;
+    var vvc = +j.v.vvc || 0;
+    cs.forEach(function(c){ c.pc = pctOficial(c, vvc); });
+    var info = {
+      cdTse: m.cd, nm: m.nm, comparecimento: +j.s.si || 0,
+      vv: vv, vcc: vvc,
+      top5: cs.slice(0,5),
+      vencedor: cs[0] || null,
+      pcVenc: cs[0] ? pctOficial(cs[0], vvc) : 0
+    };
+    estado.porCd[m.cdi] = info;
+  }
+
+  /* Interações */
+  function setModo(m){
+    estado.modo = m;
+    document.getElementById('btn-party').classList.toggle('active', m==='party');
+    document.getElementById('btn-share').classList.toggle('active', m==='share');
+    if(camada){ mapa.removeLayer(camada);
+      montarCamada(estado.geojsonOrig);
+    }
+  }
+  document.getElementById('btn-party').addEventListener('click', function(){ setModo('party'); });
+  document.getElementById('btn-share').addEventListener('click', function(){ setModo('share'); });
+  document.getElementById('btn-reload').addEventListener('click', function(){ location.reload(true); });
+})();
+</script>
+</body>
+</html>

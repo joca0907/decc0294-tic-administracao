@@ -17,3 +17,7 @@ saidas/
 dados/restrito/
 modelo/
 __pycache__/
+
+# copias aninhadas do proprio repositorio (sobras de clone/sessao)
+/decc0294-tic-administracao/
+/29_9/

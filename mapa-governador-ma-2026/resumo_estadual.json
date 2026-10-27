@@ -1,0 +1,96 @@
+{
+ "cargo": "Governador",
+ "uf": "Maranhão (MA)",
+ "eleicao": "Eleição Ordinária Estadual 2026 — 1º Turno",
+ "codigoEleicao": 6259,
+ "dataTotalizacao": "05/10/2026 02:01:55",
+ "eleitoradoAptos": 5180851,
+ "comparecimento": 4158395,
+ "abstencao": 1022456,
+ "brancos": 93669,
+ "nulos": 169646,
+ "validos": 3846156,
+ "subJudice": 48924,
+ "candidatos": [
+  {
+   "nome": "EDUARDO BRAIDE",
+   "partido": "PSD",
+   "coligacao": "NOVO / PSD",
+   "votos": 2104122,
+   "pct": 54.019994455,
+   "situacao": "Válido",
+   "eleito": true,
+   "seq": 1
+  },
+  {
+   "nome": "ORLEANS BRANDÃO",
+   "partido": "MDB",
+   "coligacao": "MDB / PDT / REPUBLICANOS / PODE / PRD / SOLIDARIEDADE",
+   "votos": 1354044,
+   "pct": 34.762931698,
+   "situacao": "Válido",
+   "eleito": false,
+   "seq": 2
+  },
+  {
+   "nome": "FELIPE CAMARÃO",
+   "partido": "PT",
+   "coligacao": "PCDOB / PT / PV / PSB / PSOL / REDE",
+   "votos": 374039,
+   "pct": 9.602857964,
+   "situacao": "Válido",
+   "eleito": false,
+   "seq": 3
+  },
+  {
+   "nome": "ROBERTO ROCHA",
+   "partido": "PRTB",
+   "coligacao": "PRTB",
+   "votos": 48924,
+   "pct": 1.256046089,
+   "situacao": "Anulado sub judice",
+   "eleito": false,
+   "seq": 4
+  },
+  {
+   "nome": "ANDRÉ LUIS",
+   "partido": "MISSÃO",
+   "coligacao": "MISSÃO",
+   "votos": 7905,
+   "pct": 0.202948335,
+   "situacao": "Válido",
+   "eleito": false,
+   "seq": 5
+  },
+  {
+   "nome": "SAULO ARCANGELI",
+   "partido": "PSTU",
+   "coligacao": "PSTU",
+   "votos": 4693,
+   "pct": 0.12048533,
+   "situacao": "Válido",
+   "eleito": false,
+   "seq": 6
+  },
+  {
+   "nome": "REGINALDO LIMA",
+   "partido": "PCB",
+   "coligacao": "PCB",
+   "votos": 1096,
+   "pct": 0.028138061,
+   "situacao": "Válido",
+   "eleito": false,
+   "seq": 7
+  },
+  {
+   "nome": "DIMAS CASSIMIRO",
+   "partido": "PCO",
+   "coligacao": "PCO",
+   "votos": 257,
+   "pct": 0.006598067,
+   "situacao": "Válido",
+   "eleito": false,
+   "seq": 8
+  }
+ ]
+}
