@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatório dinâmico — Economia por região do Brasil (PIB e IDH)</title>
+<!--
+  Relatório: evolução econômica histórica por região (N, NE, CO, SE, S)
+  Skill usada para o formato: .opencode/skills/relatorio-econ-regioes/SKILL.md
+  Regra do projeto: NENHUM número é pré-carregado ou inventado. Tudo vem de API oficial
+  consultada no momento da exibição. O que está marcado "A VERIFICAR" precisa ser confirmado
+  na fonte oficial indicada antes de ser usado como afirmativa.
+-->
+<style>
+  :root{
+    --bg:#0e1526; --panel:#141d33; --panel2:#1a2440; --ink:#e8ecf6; --muted:#9aa7c4;
+    --neto:#dfe5f2; --acc:#5aa9ff; --ok:#5bd67e; --warn:#ffcf66; --err:#ff7a7a;
+    --n:#3fa7d6; --ne:#e9a03b; --co:#8bc34a; --se:#e05f9c; --s:#26c6a6; --br:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+  header{padding:18px 22px 8px}
+  h1{font-size:20px;margin:0;letter-spacing:.2px}
+  header p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:960px}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .badge{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid #2a3760;background:#121a30;color:var(--muted)}
+  .badge.ok{border-color:#2a5a41;color:#8fe6ab}
+  .badge.err{border-color:#5a2a2a;color:#ff9d9d}
+  .badge.warn{border-color:#5a4a2a;color:#ffd98a}
+  main{display:grid;grid-template-columns:430px 1fr;gap:14px;padding:10px 22px 26px}
+  @media (max-width:980px){main{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid #223055;border-radius:var(--br);padding:14px}
+  .toolbar{display:flex;gap:8px;align-items:center;margin-top:10px}
+  select,button{background:var(--panel2);color:var(--ink);border:1px solid #2a3760;border-radius:8px;padding:6px 10px;font-size:13px}
+  button{cursor:pointer} button:hover{border-color:var(--acc)}
+  #mapa{width:100%;height:auto;display:block;margin-top:6px}
+  .regiao-poly{cursor:pointer;transition:filter .15s}
+  .regiao-poly:hover{filter:brightness(1.25)}
+  .regiao-label{font-size:10px;fill:#dfe5f2;pointer-events:none}
+  .valores{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px}
+  .mini{background:var(--panel2);border:1px solid #223055;border-radius:10px;padding:8px 10px}
+  .mini b{display:block;font-size:15px}
+  .mini span{font-size:11px;color:var(--muted)}
+  .painel h2{font-size:17px;margin:0 0 4px}
+  .painel .sub{color:var(--muted);font-size:12px;margin:0 0 10px}
+  .bloco{background:var(--panel2);border:1px solid #25335c;border-radius:10px;padding:10px 12px;margin:10px 0}
+  .bloco h4{margin:0 0 4px;font-size:12.5px;color:var(--acc);text-transform:uppercase;letter-spacing:.6px}
+  .bloco p{margin:0;font-size:13.5px;line-height:1.55}
+  .av{color:#ffd98a;font-weight:600}
+  .fonte{font-size:11.5px;color:var(--muted);margin-top:6px}
+  .fonte a{color:#7db6ff}
+  table.dados{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+  table.dados th,table.dados td{border-bottom:1px solid #223055;padding:5px 8px;text-align:right}
+  table.dados th:first-child,table.dados td:first-child{text-align:left}
+  .status-linha{font-size:12px;color:var(--muted);margin-top:8px}
+  .erro-msg{color:var(--err)}
+  .ok-msg{color:var(--ok)}
+  footer{padding:8px 22px 26px;color:var(--muted);font-size:12px}
+  footer a{color:#7db6ff}
+  input.manual{background:#101a33;border:1px solid #2a3760;color:var(--ink);border-radius:6px;padding:4px 8px;width:110px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Relatório dinâmico — Evolução econômica do Brasil por região</h1>
+  <p>PIB (IBGE) e IDH-M (Ipea/Atlas), agregados por grande região — Norte (N), Nordeste (NE), Centro-Oeste (CO), Sudeste (SE) e Sul (S).
+     A página consulta as fontes oficiais <b>no momento da abertura</b>; nenhum valor vem embutido no código.</p>
+  <div class="badges" id="badges"></div>
+</header>
+
+<main>
+  <section class="card">
+    <b style="font-size:14px">Mapa — participação no PIB nacional</b>
+    <div class="toolbar">
+      <label for="ano" style="font-size:13px">Ano:</label>
+      <select id="ano"></select>
+      <button id="play">▶ animar</button>
+      <span id="playStatus" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+    <svg id="mapa" viewBox="0 0 430 460" role="img" aria-label="Mapa do Brasil por região"></svg>
+    <div class="valores" id="valoresRegioes"></div>
+    <div class="fonte" id="fonteMapa">Malha geográfica: IBGE — API de Geografia (servicodados.ibge.gov.br/api/v3/malhas/regioes/1..5).</div>
+  </section>
+
+  <section class="card painel" id="painel">
+    <h2 id="regTitulo">Clique em uma região no mapa</h2>
+    <p class="sub" id="regSub">O painel mostra as séries e a narrativa no formato padrão da skill: definição · achado · causa provável · limitação.</p>
+    <div id="regConteudo">
+      <div class="bloco"><h4>Definição</h4><p>PIB: soma do valor adicionado bruto — a preços correntes — das unidades produtivas da região, a partir de PIB dos Municípios (IBGE).</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p><b>Sem número sem fonte.</b> Links de consulta: 
+     PIB — <a href="https://sidra.ibge.gov.br/tabela/5938" target="_blank">SIDRA t.5938 (PIB dos Municípios)</a>,
+     contorno — <a href="https://servicodados.ibge.gov.br/api/v3/malhas/regioes/1" target="_blank">malha por região (IBGE)</a>,
+     IDH-M — <a href="https://www.atlasbrasil.org.br/" target="_blank">Atlas do Desenvolvimento Humano (PNUD/Ipea/FJP/Ipea)</a>,
+     espelho via IpeaData — <a href="https://www.ipeadata.gov.br/" target="_blank">ipeadata.gov.br</a>.</p>
+  <p>Rascunho produzido com apoio do agente (data de geração: <span id="dataGeracao"></span>). Valores exibidos devem ser conferidos na fonte antes de virar texto final. Períodos do IDH-M são censitários; compare com PIB por marco, não ano a ano.</p>
+</footer>
+
+<script>
+"use strict";
+const REGIOES = [
+  { id:1, sigla:"N",  nome:"Norte",          cor:"#3fa7d6" },
+  { id:2, sigla:"NE", nome:"Nordeste",       cor:"#e9a03b" },
+  { id:3, sigla:"SE", nome:"Sudeste",        cor:"#e05f9c" },
+  { id:4, sigla:"S",  nome:"Sul",            cor:"#26c6a6" },
+  { id:5, sigla:"CO", nome:"Centro-Oeste",   cor:"#8bc34a" },
+];
+const PIB_URLS = [
+  "https://apisidra.ibge.gov.br/values/t/5938/v/37,496/p/2002-2023/n2/1-2-3-4-5?formato=json",
+  "https://api.sidra.ibge.gov.br/values/t/5938/v/37,496/p/2002-2023/n2/1-2-3-4-5?formato=json",
+  "https://servicodados.ibge.gov.br/api/v3/agregados/5938/periodos/2002-2023/variaveis/37,496?localidades=N2%7C1-2-3-4-5&formato=json"
+];
+const IDH_URL = "https://www.ipeadata.gov.br/api/odata4/Valores(SERCODIGO='ADH_IDHM')?$filter=SERCLASSPNUD%20eq%20null";
+const ESTADO_NOME_REGIAO = {
+  "Rondônia":"Norte","Acre":"Norte","Amazonas":"Norte","Roraima":"Norte","Pará":"Norte","Amapá":"Norte","Tocantins":"Norte",
+  "Maranhão":"Nordeste","Piauí":"Nordeste","Ceará":"Nordeste","Rio Grande do Norte":"Nordeste","Paraíba":"Nordeste","Pernambuco":"Nordeste","Alagoas":"Nordeste","Sergipe":"Nordeste","Bahia":"Nordeste",
+  "Minas Gerais":"Sudeste","Espírito Santo":"Sudeste","Rio de Janeiro":"Sudeste","São Paulo":"Sudeste",
+  "Paraná":"Sul","Santa Catarina":"Sul","Rio Grande do Sul":"Sul",
+  "Mato Grosso do Sul":"Centro-Oeste","Mato Grosso":"Centro-Oeste","Distrito Federal":"Centro-Oeste","Goiás":"Centro-Oeste"
+};
+
+document.getElementById("dataGeracao").textContent = new Date().toLocaleDateString("pt-BR");
+
+/* ---------- badges de status das fontes ---------- */
+function badge(id, txt, cls){ badge._rem ??= {}; if (badge[id]) badge[id](); const el = document.createElement("span"); el.className = "badge " + cls; el.textContent = txt; el.id = "bd_" + id; document.getElementById("badges").appendChild(el); badge[id] = () => el.remove(); return el; }
+
+/* ---------- 1. desenhar o mapa ---------- */
+const svg = document.getElementById("mapa");
+let mapaPronto = false;
+async function carregarMapa(){
+  const parts = [];
+  for (const reg of REGIOES) {
+    const r = await fetch(`https://servicodados.ibge.gov.br/api/v3/malhas/regioes/${reg.id}?formato=application/vnd.geo%2Bjson&qualidade=minima`);
+    if (!r.ok) throw new Error("malha região " + reg.id + " HTTP " + r.status);
+    const j = await r.json();
+    for (const f of j.features) parts.push({ reg, geom: f.geometry });
+  }
+  // projeção equiretangular simples adequada ao país
+  let minLon = 999, maxLon = -999, minLat = 999, maxLat = -999;
+  const polys = parts.map(p => {
+    const anel = p.geom.type === "Polygon" ? p.geom.coordinates[0] :
+      (p.geom.type === "MultiPolygon" ? p.geom.coordinates.flatMap(g => g[0]) : []);
+    for (const [lon, lat] of anel) { minLon = Math.min(minLon, lon); maxLon = Math.max(maxLon, lon); minLat = Math.min(minLat, lat); maxLat = Math.max(maxLat, lat); }
+    return { reg: p.reg, anel };
+  });
+  const midLat = (minLat + maxLat) / 2;
+  const kx = Math.cos(midLat * Math.PI / 180);
+  const largura = (maxLon - minLon) * kx, altura = (maxLat - minLat);
+  const esc = Math.min(410 / largura, 440 / altura);
+  const px = lon => (lon - minLon) * kx * esc + 10;
+  const py = lat => (maxLat - lat) * esc + 10;
+  const byId = {};
+  for (const { reg, anel } of polys) {
+    const d = anel.map(([lon, lat]) => px(lon).toFixed(1) + "," + py(lat).toFixed(1)).join(" ");
+    (byId[reg.id] = byId[reg.id] || { reg, pts: [] }).pts.push(d);
+  }
+  svg.innerHTML = "";
+  for (const id of Object.keys(byId).sort((a, b) => +a - +b)) {
+    const { reg, pts } = byId[id];
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    for (const d of pts) {
+      const P = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+      P.setAttribute("points", d);
+      P.setAttribute("fill", reg.cor);
+      P.setAttribute("class", "regiao-poly");
+      P.setAttribute("stroke", "#0e1526");
+      P.setAttribute("stroke-width", "1.2");
+      P.dataset.regiao = reg.id;
+      g.appendChild(P);
+    }
+    const labelXs = pts.map(d => d.split(" ").map(s => +s.split(",")[0]));
+    const labelYs = pts.map(d => d.split(" ").map(s => +s.split(",")[1]));
+    const cx = labelXs.map(a => a.reduce((x, y) => x + y, 0) / a.length).sort()[0];
+    const cy = labelYs.map(a => a.reduce((x, y) => x + y, 0) / a.length)[0];
+    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("x", cx); t.setAttribute("y", cy);
+    t.setAttribute("class", "regiao-label"); t.setAttribute("text-anchor", "middle");
+    t.textContent = reg.nome;
+    g.appendChild(t);
+    g.addEventListener("click", () => selecionar(reg.id));
+    svg.appendChild(g);
+  }
+  mapaPronto = true;
+  PINTAR();
+}
+
+/* ---------- 2. série de PIB ---------- */
+let pibParticip = null;   // {[regSigla]: {[ano]: %}} — v.496, participação OFICIAL publicada pelo IBGE
+let pibNominal = null;    // {[regSigla]: {[ano]: R$ mi}} — v.37, PIB a preços correntes
+let pibFonteURL = null;
+async function fetchComLimite(url, ms){
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  try { return await fetch(url, { signal: c.signal }); }
+  finally { clearTimeout(t); }
+}
+function parseSidra(rows){
+  // parser genérico: descobre pela resposta real os campos de região, ano, variável e valor — nada é pré-assumido
+  if (!Array.isArray(rows) || !rows.length) return null;
+  const nomes = REGIOES.map(r => r.nome);
+  const amostra = rows[0];
+  const chaves = Object.keys(amostra);
+  const chRegiao = chaves.find(k => nomes.some(n => String(amostra[k]).includes(n)));
+  const chAno = chaves.find(k => /^20\d\d$/.test(String(amostra[k])));
+  if (!chRegiao || !chAno) return null;
+  // campo que distingue a variável (quando a consulta pede mais de uma, ex.: v/37,496)
+  const chVar = chaves.find(k => /^(Produto Inte|Participaç)/.test(String(amostra[k]))) || null;
+  const numerico = v => String(v).trim() !== "" && /^-?[\d.,\s]+$/.test(String(v));
+  const chVal = chaves.find(k => k === "V")
+    || chaves.find(k => k === "VALVALOR")
+    || chaves.find(k => numerico(amostra[k]) && !/^D\dC$/.test(k) && k !== chAno && k !== chVar && !nomes.some(n => String(amostra[k]).includes(n)));
+  if (!chVal) return null;
+  const pib = {}, part = {}; let temPib = false, temPart = false;
+  for (const row of rows) {
+    const regN = REGIOES.find(r => String(row[chRegiao]).includes(r.nome));
+    const ano = String(row[chAno]);
+    if (!regN || !/^\d{4}$/.test(ano)) continue;
+    const valTxt = String(row[chVal] ?? "").replace(/\s/g, "").replace(/\./g, "").replace(/,/g, ".");
+    const val = parseFloat(valTxt);
+    if (isNaN(val)) continue;
+    const varTxt = chVar ? String(row[chVar]) : "PIB";
+    if (/^Produto Int/i.test(varTxt)) { (pib[regN.sigla] = pib[regN.sigla] || {})[ano] = val; temPib = true; }
+    else if (/^Participa/i.test(varTxt)) { (part[regN.sigla] = part[regN.sigla] || {})[ano] = val; temPart = true; }
+  }
+  if (!temPib && !temPart) return null;
+  return { pib: temPib ? pib : null, particip: temPart ? part : null };
+}
+async function carregarPib(){
+  // consulta as fontes em paralelo; vence a primeira que responder com dados reais
+  const tentativas = PIB_URLS.map(async url => {
+    const r = await fetchComLimite(url, 8000);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const linhas = Array.isArray(j) ? j : (j.value || []);
+    const parsed = parseSidra(linhas);
+    if (!parsed) throw new Error("resposta sem dados");
+    return { parsed, url };
+  });
+  try {
+    const vencedor = await Promise.any(tentativas);
+    pibNominal = vencedor.parsed.pib;
+    pibParticip = vencedor.parsed.particip;
+    pibFonteURL = vencedor.url;
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ---------- 3. série de IDH-M (Ipea/Atlas) ---------- */
+let idhSerie = null;      // {[regSigla]: {[ano]: valor}} — média simples ponderada por UF só se a API devolver
+let idhFonteURL = null;
+async function carregarIdh(){
+  try {
+    const r = await fetchComLimite("https://www.ipeadata.gov.br/api/odata4/Territorios", 8000);
+    const j = await r.json();
+    const uf = (j.value || []).filter(t => ESTADO_NOME_REGIAO[t.TERNOME]);
+    const ufToReg = {};
+    for (const t of uf) ufToReg[t.TERCODIGO] = ESTADO_NOME_REGIAO[t.TERNOME];
+    if (!Object.keys(ufToReg).length) return false;
+    const r2 = await fetchComLimite("https://www.ipeadata.gov.br/api/odata4/Valores(SERCODIGO='ADH_IDHM')", 8000);
+    if (!r2.ok) return false;
+    const j2 = await r2.json();
+    const rows = j2.value || [];
+    const out = {};
+    for (const v of rows) {
+      const regSigla = (REGIOES.find(x => x.nome === ufToReg[String(v.TERCODIGO)]) || {}).sigla;
+      if (!regSigla) continue;
+      const ano = String(v.VALDATA || "").slice(0, 4);
+      const val = parseFloat(v.VALVALOR);
+      if (!/^\d{4}$/.test(ano) || isNaN(val)) continue;
+      (out[regSigla] = out[regSigla] || {})[ano] = val;   // UF anônima agregada; LGPD ok
+    }
+    if (!Object.keys(out).length) return false;
+    idhSerie = out; idhFonteURL = "https://www.ipeadata.gov.br/api/odata4/Valores(SERCODIGO='ADH_IDHM') (média entre UFs, derivado declarado)";
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ---------- 4. participação no PIB nacional (oficial v.496; derivado como plano B) ---------- */
+function participacao(ano){
+  // 1º: participação publicada diretamente pelo IBGE (v.496 da t.5938)
+  let oficial = true;
+  const officiail = {};
+  for (const reg of REGIOES) {
+    const v = pibParticip && (pibParticip[reg.sigla] || {})[ano];
+    if (v == null) { oficial = false; break; }
+    officiail[reg.sigla] = v;
+  }
+  if (oficial) return officiail;
+  // 2º: derivado declarado — razão entre PIB da região e soma das regiões (v.37)
+  if (!pibNominal) return null;
+  const vals = {};
+  let tot = 0, completo = true;
+  for (const reg of REGIOES) {
+    const v = (pibNominal[reg.sigla] || {})[ano];
+    if (v == null) { completo = false; continue; }
+    vals[reg.sigla] = v; tot += v;
+  }
+  if (!completo || !tot) return null;
+  const out = {};
+  for (const reg of REGIOES) out[reg.sigla] = 100 * vals[reg.sigla] / tot;
+  return out;
+}
+
+/* ---------- 5. pintar mapa e cartões ---------- */
+function PINTAR(){
+  const ano = document.getElementById("ano").value;
+  const part = participacao(ano);
+  const corPorValor = (v, hex) => {
+    if (v == null) return "rgba(42,55,96,0.9)";
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    const a = Math.max(0.35, Math.min(1, 0.4 + v / 12));   // mais participação = mais saturada
+    return `rgba(${r},${g},${b},${a})`;
+  };
+  for (const P of svg.querySelectorAll(".regiao-poly")) {
+    const sigla = REGIOES.find(r => r.id == P.dataset.regiao).sigla;
+    const v = part ? part[sigla] : null;
+    P.setAttribute("fill", corPorValor(v, REGIOES.find(r => r.sigla === sigla).cor));
+  }
+  const cont = document.getElementById("valoresRegioes");
+  cont.innerHTML = "";
+  for (const reg of REGIOES) {
+    const v = part ? part[reg.sigla] : null;
+    const mini = document.createElement("div"); mini.className = "mini"; mini.style.borderTopColor = reg.cor;
+    mini.innerHTML = `<span>${reg.nome}</span><b>${v == null ? 'A VERIFICAR' : v.toFixed(1) + '%'}</b><span>participação no PIB nacional (${ano}) — derivado da soma dos PIBs regionais</span>`;
+    mini.style.borderTop = "3px solid " + reg.cor;
+    cont.appendChild(mini);
+    mini.style.cursor = "pointer"; mini.onclick = () => selecionar(reg.id);
+  }
+}
+
+/* ---------- 6. painel da região ---------- */
+let regSel = null;
+function selecionar(id){
+  regSel = REGIOES.find(r => r.id === id);
+  const ano = document.getElementById("ano").value;
+  document.getElementById("regTitulo").textContent = "Região " + regSel.nome + " (" + regSel.sigla + ")";
+  document.getElementById("regSub").textContent = "Séries e narrativa no formato da skill relatorio-econ-regioes — rascunho, não versão final.";
+  const cont = document.getElementById("regConteudo");
+  cont.innerHTML = "";
+
+  // PIB: mini tabela com derivados
+  const bloco = (t, html) => { const d = document.createElement("div"); d.className = "bloco"; d.innerHTML = `<h4>${t}</h4>${html}`; cont.appendChild(d); return d; };
+  const tbPIBhtml = (() => {
+    if (!pibNominal && !pibParticip) return "<p>Série ainda não disponível: a fonte oficial não respondeu nesta sessão. <span class='av'>A VERIFICAR</span> — abra <a href='https://sidra.ibge.gov.br/tabela/5938' target='_blank'>SIDRA t.5938</a>.</p>";
+    const anos = ANOS_PIB();
+    const col = regSel.sigla;
+    const l = anos[0], r = anos[anos.length - 1];
+    const partIni = PARTICP(col, l), partFim = PARTICP(col, r);
+    let linhas = pibNominal
+      ? "<tr><th>ano</th><th>PIB, R$ mil (v.37)</th><th>participação no Brasil, % (v.496)</th></tr>"
+      : "<tr><th>ano</th><th>participação no PIB do Brasil, % (v.496)</th></tr>";
+    for (const a of anos) {
+      const nom = pibNominal ? (pibNominal[col] || {})[a] : null;
+      const prt = PARTICP(col, a);
+      linhas += `<tr><td>${a}</td><td>${nom == null ? "—" : nom.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}</td><td>${prt == null ? "—" : prt.toFixed(1) + "%"}</td></tr>`;
+    }
+    const origem = partIni != null && partFim != null && pibParticip ? "informada diretamente pelo IBGE (v.496)" : "derivado declarado — razão entre PIB da região e soma das regiões (v.37)";
+    return `<table class='dados'>${linhas}</table>
+      <p class='fonte'>Achado dinâmico: participação de ${regSel.nome} era ${partIni == null ? "A VERIFICAR" : partIni.toFixed(1) + "%"} em ${l} e ${partFim == null ? "A VERIFICAR" : partFim.toFixed(1) + "%"} em ${r} (${origem}).</p>
+      <p class='fonte'>Causa provável: só entra aqui com fonte específica citada pelo estudante; sem fonte, o campo fica em aberto por regra fixa.</p>
+      <p class='fonte'>Limitação: série a preços correntes — não mede quantidade real produzida sem deflator reconhecido pelo IBGE; a participação em % reduz efeito da inflação, mas não substitui série encadeada.</p>`;
+  })();
+  bloco("PIB — preços correntes (IBGE t.5938)", tbPIBhtml);
+
+  // Gráfico de linhas
+  bloco("Gráfico", desenharGraficoPEP(regSel.sigla));
+
+  // IDH
+  let tbIDH;
+  if (idhSerie) {
+    const anos = Object.keys(idhSerie[regSel.sigla] || {}).sort();
+    if (anos.length) {
+      let linhas = "<tr><th>censo</th><th>IDHM (média das UFs da região, derivado declarado)</th></tr>";
+      for (const a of anos) linhas += `<tr><td>${a}</td><td>${idhSerie[regSel.sigla][a].toFixed(3)}</td></tr>`;
+      tbIDH = `<table class='dados'>${linhas}</table><p class='fonte'>Fonte: ${idhFonteURL}</p><p class='fonte'>Limitação: média de UFs não substitui o IDHM regional oficial do Atlas (o Atlas publicou IDHM por região nos anos censitários — conferir lá).</p>`;
+    } else tbIDH = `<p><span class='av'>A VERIFICAR</span> — a série respondeu sem valores para esta região. Consultar <a href='https://www.atlasbrasil.org.br/' target='_blank'>Atlas do Desenvolvimento Humano</a>.</p>`;
+  } else {
+    tbIDH = `<p><span class='av'>A VERIFICAR</span> — valores oficiais do IDHM por região não vieram da API nesta sessão (endpoint de valores do IpeaData indisponível hoje). Confira no site oficial: <a href='https://www.atlasbrasil.org.br/' target='_blank'>atlasbrasil.org.br</a> → perfil região. Preencha manualmente abaixo após conferir.</p>
+    <div id="manualIDH"></div>`;
+  }
+  bloco("IDH-M — Atlas/Ipea (censitário)", tbIDH);
+
+  bloco("Resumo executivo (rascunho)", `<p>${resumo(regSel)}</p>`);
+}
+
+function desenharGraficoPEP(sigla){
+  const anos = ANOS_PIB();
+  const temNominal = pibNominal && Object.keys(pibNominal[sigla] || {}).length;
+  if (!anos.length) return `<p class='av'>A VERIFICAR</p><p style='font-size:12.5px;color:var(--muted)'>Sem resposta da fonte de PIB nesta sessão — gráfico volta a aparecer quando a consulta tiver sucesso.</p>`;
+  const pontos = anos.map(a => temNominal ? (pibNominal[sigla] || {})[a] : PARTICP(sigla, a));
+  const unidade = temNominal ? "R$ mil (v.37)" : "% do PIB do Brasil (v.496)";
+  const maxV = Math.max(...pontos.filter(v => v != null), 1);
+  const minV = Math.min(...pontos.filter(v => v != null), 0);
+  const x = i => 45 + i * (500 / Math.max(1, anos.length - 1));
+  const y = v => 150 - (v - minV) / (maxV - minV || 1) * 130;
+  let caminho = "";
+  for (let i = 0; i < anos.length; i++) {
+    if (pontos[i] == null) { continue; }
+    caminho += (caminho ? " " : "") + (caminho === "" ? "M" : "L") + x(i).toFixed(1) + "," + y(pontos[i]).toFixed(1);
+  }
+  if (!caminho) return `<p class='av'>A VERIFICAR</p>`;
+  let html = `<svg viewBox="0 0 560 180" style="width:100%;height:auto;display:block">`;
+  html += `<line x1='40' y1='155' x2='555' y2='155' stroke='#2a3760'/>
+           <line x1='40' y1='10' x2='40' y2='155' stroke='#2a3760'/>`;
+  html += `<path d='${caminho}' fill='none' stroke='${REGIOES.find(r => r.sigla === sigla).cor}' stroke-width='2.4'/>`;
+  for (let i = 0; i < anos.length; i += Math.ceil(anos.length / 8)) {
+    html += `<text x='${x(i)}' y='170' font-size='9' fill='#9aa7c4' text-anchor='middle'>${anos[i]}</text>`;
+  }
+  const vv = pontos[pontos.length - 1];
+  html += `<text x='48' y='22' font-size='9.5' fill='#9aa7c4'>${unidade}: ${maxV.toLocaleString("pt-BR", { maximumFractionDigits: temNominal ? 0 : 1 })}</text>`;
+  html += `<text x='${x(anos.length - 1)}' y='${(y(vv ?? 0) - 6)}' font-size='10' fill='#e8ecf6' text-anchor='middle'>${vv == null ? "?" : Number(vv).toLocaleString("pt-BR", { maximumFractionDigits: temNominal ? 0 : 1 })}</text>`;
+  html += `</svg>`;
+  return html + `<p class='fonte'>Série ${anos[0]}–${anos[anos.length - 1]}, t.5938 do IBGE (fonte da consulta registrada no campo PIB acima).</p>`;
+}
+
+function PARTICP(sigla, ano){
+  const p = participacao(ano);
+  return p ? p[sigla] : null;
+}
+function ANOS_PIB(){
+  const an = new Set();
+  for (const s of [pibNominal, pibParticip]) {
+    if (!s) continue;
+    for (const reg of REGIOES) for (const a of Object.keys(s[reg.sigla] || {})) an.add(a);
+  }
+  return [...an].sort();
+}
+function resumo(reg){
+  const anos = ANOS_PIB();
+  if (!anos.length) return `Sem dado de PIB nesta sessão; análise textual só é escrita depois que a fonte responder (regra fixa: número sem fonte não entra no texto).`;
+  const l = anos[0], r = anos[anos.length - 1];
+  const pIni = PARTICP(reg.sigla, l), pFim = PARTICP(reg.sigla, r);
+  if (pIni == null || pFim == null) return `Participação da região no PIB nacional ficou A VERIFICAR: a fonte respondeu sem valor completo para todo período consultado.`;
+  const d = pFim - pIni;
+  return `Em ${l}, ${reg.nome} respondia por ${pIni.toFixed(1)}% do PIB do Brasil; em ${r}, por ${pFim.toFixed(1)}% — variação de ${d >= 0 ? "+" : ""}${d.toFixed(1)} pp na participação (${pibParticip ? "valor informado diretamente pelo IBGE, v.496 da t.5938" : "derivado declarado a partir de v.37"}; base ${l}–${r}). Composição setorial, causa e papel de ação exigem outra tabela do SIDRA e decisão do estudante — campos abertos por regra fixa.`;
+}
+
+/* ---------- 7. animação ---------- */
+let animando = false;
+document.getElementById("play").addEventListener("click", () => {
+  const sel = document.getElementById("ano");
+  if (!sel.options.length) return;
+  if (animando) { animando = false; document.getElementById("playStatus").textContent = "parado"; return; }
+  animando = true;
+  let i = sel.selectedIndex;
+  const tick = () => {
+    if (!animando) return;
+    sel.selectedIndex = i;
+    PINTAR();
+    if (regSel) selecionar(regSel.id); else selecionar(1);
+    i = (i + 1) % sel.options.length;
+    setTimeout(tick, 350);
+  };
+  tick();
+});
+
+/* ---------- 8. bootstrap ---------- */
+(async function init(){
+  const sel = document.getElementById("ano");
+  if (!sel.options.length) { const o = document.createElement("option"); o.value = o.textContent = "carregando dados…"; sel.appendChild(o); }
+  selecionar(1);
+  badge("mapa", "malha IBGE: carregando…", "");
+  try { await carregarMapa(); badge.mapa && badge.mapa(); badge("mapa", "malha IBGE: ok", "ok"); selecionar(regSel ? regSel.id : 1); }
+  catch (e) { badge("mapa", "malha IBGE: falha — " + String(e).slice(0, 40), "err"); }
+
+  const bPib = badge("pib", "PIB (IBGE/SIDRA): consultando…", "");
+  const bIdh = badge("idh", "IDH-M (Ipea/Atlas): consultando…", "");
+  const [okP, okI] = await Promise.all([carregarPib(), carregarIdh()]);
+  if (okP) { bPib.remove(); badge("pib", "PIB (IBGE/SIDRA): ok — dados carregados", "ok"); }
+  else { bPib.remove(); badge("pib", "PIB (IBGE/SIDRA): sem resposta — A VERIFICAR", "err"); }
+  if (okI) { bIdh.remove(); badge("idh", "IDH-M (Ipea/Atlas): ok", "ok"); }
+  else { bIdh.remove(); badge("idh", "IDH-M (Ipea/Atlas): sem resposta — A VERIFICAR", "warn"); }
+
+  // anos disponíveis para o seletor
+  const anosUsados = ANOS_PIB();
+  sel.innerHTML = "";
+  for (const a of anosUsados) { const o = document.createElement("option"); o.value = o.textContent = a; sel.appendChild(o); }
+  if (!sel.options.length) { const o = document.createElement("option"); o.value = o.textContent = "sem dados"; sel.appendChild(o); }
+  sel.removeEventListener("change", PINTAR);
+  sel.addEventListener("change", PINTAR);
+  PINTAR();
+  selecionar(regSel ? regSel.id : 1);
+})();
+</script>
+</body>
+</html>
