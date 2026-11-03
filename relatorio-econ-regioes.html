@@ -553,7 +553,7 @@ function selecionar(id){
     <p class='fonte'>Conferência do método: agregado Brasil 2010 = 0,723 vs. 0,727 publicado no Atlas (diferença decorre de municípios que mudaram de código entre censos — declarada como limitação).</p>
     <p class='fonte'>Fonte da consulta: ${idhFonteURL}</p>
     <p class='fonte'>Limitação: censitário (1991, 2000, 2010) — comparar com o PIB por marco escolhido, não ano a ano; não substitui eventual IDHM regional oficial eventualmente publicado pelo Atlas.</p>`
-    : `<p><span class='av'>A VERIFICAR</span> — a API do IpeaData não respondeu nesta sessão (valores do IDHM por município, base oficial). Consultar <a href='https://www.atlasbrasil.org.br/' target='_blank'>atlasbrasil.org.br</a> e registrar abaixo APÓS conferir na fonte citada.</p>`;
+    : `<p><span class='av'>A VERIFICAR</span> — a API do IpeaData não respondeu nesta sessão (valores do IDHM por município, base oficial). Consultar <a href='https://www.atlasbrasil.org.br/' target='_blank'>atlasbrasil.org.br</a>.</p>`;
   // série oficial por UF (Painel IDHM — PNUD; PNAD Contínua 2012–2021): valores publicados, sem derivação
   const ufsReg = Object.keys(ESTADO_NOME_REGIAO).filter(u => ESTADO_NOME_REGIAO[u] === regSel.nome).sort((a, b) => a.localeCompare(b, "pt-BR"));
   const anosUF = idhmUF && ufsReg.length ? [...new Set(ufsReg.flatMap(u => Object.keys(idhmUF[u] || {})))].sort() : [];
@@ -563,52 +563,9 @@ function selecionar(id){
     <p class='fonte'>Não comparável com a série censitária acima (fonte e metodologia diferentes: PNAD Contínua 2012–2021 vs. Censos 1991/2000/2010): compare por bloco, não atravessando a fronteira 2010→2012.</p>
     <p class='fonte'>Observação: IDHM anual por grande região NÃO é publicado por fonte oficial (níveis publicados: Brasil, UF e RM/RIDE) — por isso a tabela lista UF, e não a região.</p>
     <p class='fonte'>Fonte da consulta: ${idhufFonteURL}</p>`
-    : `<p><span class='av'>A VERIFICAR</span> — a base oficial do PNUD (IDHM por UF, PNAD 2012–2021) não respondeu nesta sessão; conferir em <a href='https://www.undp.org/pt/brazil/desenvolvimento-humano/painel-idhm' target='_blank'>undp.org − Painel IDHM</a> e registrar no editor abaixo.</p>`;
-  const tbIDHfinal = tbIDH + tbUF + `
-    <p class='fonte'>Editor manual: só digite valor que tenha checado no Atlas. Salvo no seu navegador e exibido como "preenchido manualmente (fonte: Atlas)".</p>
-    <div id="editorIDH"></div>`;
-  bloco("IDH-M — Atlas/Ipea (censitário)", tbIDHfinal);
-  montarEditorIDH(regSel.sigla);
+    : `<p><span class='av'>A VERIFICAR</span> — a base oficial do PNUD (IDHM por UF, PNAD 2012–2021) não respondeu nesta sessão; conferir em <a href='https://www.undp.org/pt/brazil/desenvolvimento-humano/painel-idhm' target='_blank'>undp.org − Painel IDHM</a>.</p>`;
+  bloco("IDH-M — Atlas/Ipea (censitário)", tbIDH + tbUF);
   bloco("Resumo executivo (rascunho)", `<p>${resumo(regSel)}</p>`);
-}
-
-/* ---------- 6b. editor manual de IDHM (localStorage, auditável) ---------- */
-function chaveIDH(sigla){ return "idhm_manual_" + sigla; }
-function lerIDHManual(sigla){ try { return JSON.parse(localStorage.getItem(chaveIDH(sigla)) || "[]"); } catch (e) { return []; } }
-function montarEditorIDH(sigla){
-  const caixa = document.getElementById("editorIDH");
-  if (!caixa) return;
-  function desenhar(){
-    const rows = lerIDHManual(sigla).sort((x, y) => x.ano - y.ano);
-    caixa.innerHTML = "";
-    for (const r of rows) {
-      const linha = document.createElement("div");
-      linha.style.cssText = "display:flex;align-items:center;font-size:12.5px;padding:4px 8px;text-align:left";
-      linha.innerHTML = `<b>${r.ano}</b> <span style="margin:0 0 0 14px">IDHM ${String(r.valor).replace(".", ",")}</span><span style="margin-left:14px;font-size:10.5px;color:var(--muted)">preenchido manualmente (fonte: Atlas)</span><button title="remover" style="margin-left:auto;padding:2px 8px">✕</button>`;
-      linha.querySelector("button").addEventListener("click", () => {
-        localStorage.setItem(chaveIDH(sigla), JSON.stringify(lerIDHManual(sigla).filter(x => x.ano !== r.ano)));
-        desenhar();
-      });
-      caixa.appendChild(linha);
-    }
-    const form = document.createElement("div");
-    form.style.cssText = "display:flex;gap:6px;align-items:center;margin-top:8px";
-    form.innerHTML = `<input class="manual" id="idhmAno" placeholder="ano (YYYY)" maxlength="4" size="8">
-      <input class="manual" id="idhmVal" placeholder="IDHM (0-1)" maxlength="5" size="9">
-      <button id="idhmAdd">+ registrar</button>`;
-    caixa.appendChild(form);
-    form.querySelector("#idhmAdd").addEventListener("click", () => {
-      const a = form.querySelector("#idhmAno").value.trim();
-      const vText = form.querySelector("#idhmVal").value.trim().replace(",", ".");
-      const v = parseFloat(vText);
-      if (!/^\d{4}$/.test(a) || isNaN(v) || v < 0 || v > 1) { alert("Ano precisa ser de 4 dígitos e o IDHM um número entre 0 e 1 (conferido no Atlas)."); return; }
-      const rows = lerIDHManual(sigla).filter(x => x.ano !== a);
-      rows.push({ ano: a, valor: v });
-      localStorage.setItem(chaveIDH(sigla), JSON.stringify(rows));
-      desenhar();
-    });
-  }
-  desenhar();
 }
 
 function desenharGraficoPEP(sigla){
