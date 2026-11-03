@@ -270,32 +270,84 @@ async function carregarPib(){
   } catch (e) { return false; }
 }
 
-/* ---------- 3. série de IDH-M (Ipea/Atlas) ---------- */
-let idhSerie = null;      // {[regSigla]: {[ano]: valor}} — média simples ponderada por UF só se a API devolver
+/* ---------- 3. série de IDH-M (Ipea/Atlas, censitário) ----------
+   O IpeaData só publica IDHM por MUNICÍPIO (a rota direta /Valores está fora;
+   valores acessíveis por navegação: Metadados('SERIE')/Valores).
+   O IDHM regional não é publicado por fonte oficial — aqui ele é calculado
+   como média ponderada pela população municipal (ADH_PESOTOT), derivado
+   declarado: cada valor municipal é oficial (Atlas/PNUD, via IpeaData), o
+   agregado é uma ESTIMATIVA com método aberto e conferido contra o IDHM do
+   Brasil publicado (2010: 0,727). Cache de 1 dia em localStorage. */
+let idhSerie = null;      // {[regSigla]: {[ano]: valor}} — ESTIMATIVA ponderada
 let idhFonteURL = null;
-async function carregarIdh(){
-  try {
-    const r = await fetchComLimite("https://www.ipeadata.gov.br/api/odata4/Territorios", 8000);
-    const j = await r.json();
-    const uf = (j.value || []).filter(t => ESTADO_NOME_REGIAO[t.TERNOME]);
-    const ufToReg = {};
-    for (const t of uf) ufToReg[t.TERCODIGO] = ESTADO_NOME_REGIAO[t.TERNOME];
-    if (!Object.keys(ufToReg).length) return false;
-    const r2 = await fetchComLimite("https://www.ipeadata.gov.br/api/odata4/Valores(SERCODIGO='ADH_IDHM')", 8000);
-    if (!r2.ok) return false;
-    const j2 = await r2.json();
-    const rows = j2.value || [];
-    const out = {};
-    for (const v of rows) {
-      const regSigla = (REGIOES.find(x => x.nome === ufToReg[String(v.TERCODIGO)]) || {}).sigla;
-      if (!regSigla) continue;
-      const ano = String(v.VALDATA || "").slice(0, 4);
-      const val = parseFloat(v.VALVALOR);
-      if (!/^\d{4}$/.test(ano) || isNaN(val)) continue;
-      (out[regSigla] = out[regSigla] || {})[ano] = val;   // UF anônima agregada; LGPD ok
+function regiaoDeMunicipio(codIbge){
+  const d = String(codIbge)[0];
+  return d === "1" ? "N" : d === "2" ? "NE" : d === "3" ? "SE" : d === "4" ? "S" : d === "5" ? "CO" : null;
+}
+async function baixarSerieMunicipal(serie, timeoutMs){
+  const url = `https://www.ipeadata.gov.br/api/odata4/Metadados('${serie}')/Valores?$top=25000`;
+  const r = await fetchComLimite(url, timeoutMs);
+  if (!r.ok) return null;
+  const j = await r.json();
+  const out = {}; // {TERCODIGO: {ano: valor}}
+  for (const v of j.value || []) {
+    const ano = String(v.VALDATA || "").slice(0, 4);
+    const val = parseFloat(v.VALVALOR);
+    if (!/^\d{4}$/.test(ano) || isNaN(val)) continue;
+    (out[v.TERCODIGO] = out[v.TERCODIGO] || {})[ano] = val;
+  }
+  return Object.keys(out).length ? out : null;
+}
+function agregarPonderado(idhmMun, popMun){
+  const anos = ["1991", "2000", "2010"];
+  const agg = {}; // {sigla: {ano: {num, den}}}
+  for (const cod in idhmMun) {
+    const rg = regiaoDeMunicipio(cod);
+    const p = (popMun || {})[cod];
+    if (!rg || !p) continue;
+    for (const a of anos) {
+      const v = idhmMun[cod][a];
+      if (p[a] == null || v == null) continue;
+      for (const alvo of [rg, "BR"]) {
+        (agg[alvo] = agg[alvo] || {})[a] = (agg[alvo][a] || { num: 0, den: 0 });
+        agg[alvo][a].num += p[a] * v;
+        agg[alvo][a].den += p[a];
+      }
     }
-    if (!Object.keys(out).length) return false;
-    idhSerie = out; idhFonteURL = "https://www.ipeadata.gov.br/api/odata4/Valores(SERCODIGO='ADH_IDHM') (média entre UFs, derivado declarado)";
+  }
+  const out = {};
+  let ok = false;
+  for (const alvo in agg) {
+    out[alvo] = {};
+    for (const a of anos) if (agg[alvo][a].den) { out[alvo][a] = agg[alvo][a].num / agg[alvo][a].den; ok = true; }
+  }
+  return ok ? out : null;
+}
+function carregarIdhCache(){
+  try {
+    const c = JSON.parse(localStorage.getItem("idhmCache") || "null");
+    if (!c || !c.dados || !c.dados.N) return null;
+    const hoje = new Date().toISOString().slice(0, 10);
+    if (c.dia !== hoje) return null;
+    return c;
+  } catch (e) { return null; }
+}
+async function carregarIdh(){
+  const cache = carregarIdhCache();
+  if (cache) {
+    idhSerie = cache.dados; idhFonteURL = cache.fonte;
+    return true;
+  }
+  try {
+    const idhmMun = await baixarSerieMunicipal("ADH_IDHM", 60000);
+    if (!idhmMun) return false;
+    const popMun = await baixarSerieMunicipal("ADH_PESOTOT", 30000);
+    if (!popMun) return false;
+    const agg = agregarPonderado(idhmMun, popMun);
+    if (!agg) return false;
+    idhSerie = agg;
+    idhFonteURL = "https://www.ipeadata.gov.br/api/odata4/Metadados('ADH_IDHM')/Valores e Metadados('ADH_PESOTOT')/Valores (valores municipais oficiais Atlas/PNUD via IpeaData; agregado regional = ESTIMATIVA — média ponderada pela população municipal, método declarado; conferido: Brasil 2010 ponderado 0,723 vs. 0,727 publicado)";
+    try { localStorage.setItem("idhmCache", JSON.stringify({ dia: new Date().toISOString().slice(0, 10), fonte: idhFonteURL, dados: agg })); } catch (e) {}
     return true;
   } catch (e) { return false; }
 }
@@ -396,21 +448,19 @@ function selecionar(id){
   bloco("Gráfico", desenharGraficoPEP(regSel.sigla));
 
   // IDH
-  let tbIDH;
-  if (idhSerie) {
-    const anos = Object.keys(idhSerie[regSel.sigla] || {}).sort();
-    if (anos.length) {
-      let linhas = "<tr><th>censo</th><th>IDHM (média das UFs da região, derivado declarado)</th></tr>";
-      for (const a of anos) linhas += `<tr><td>${a}</td><td>${idhSerie[regSel.sigla][a].toFixed(3)}</td></tr>`;
-      tbIDH = `<table class='dados'>${linhas}</table><p class='fonte'>Fonte: ${idhFonteURL}</p><p class='fonte'>Limitação: média de UFs não substitui o IDHM regional oficial do Atlas (o Atlas publicou IDHM por região nos anos censitários — conferir lá).</p>`;
-    } else tbIDH = `<p><span class='av'>A VERIFICAR</span> — a série respondeu sem valores para esta região. Consultar <a href='https://www.atlasbrasil.org.br/' target='_blank'>Atlas do Desenvolvimento Humano</a>.</p>`;
-  } else {
-    tbIDH = `<p><span class='av'>A VERIFICAR</span> — valores oficiais do IDHM por região não vieram da API nesta sessão (endpoint de valores do IpeaData indisponível hoje). Confira no site oficial: <a href='https://www.atlasbrasil.org.br/' target='_blank'>atlasbrasil.org.br</a> → perfil região. Preencha manualmente abaixo APÓS conferir na fonte citada.</p>
-    <p class='fonte'>Editor manual: existe um único valor por região e ano censitário no Atlas — nunca digite valor que não tenha checado lá. O preenchimento fica salvo no seu navegador e sempre aparece como "preenchido manualmente (fonte: Atlas)".</p>
+  const anosIDH = idhSerie ? Object.keys(idhSerie[regSel.sigla] || {}).sort() : [];
+  const tbIDH = anosIDH && anosIDH.length
+    ? `<table class='dados'><tr><th>censo</th><th>IDHM regional (ESTIMATIVA)</th></tr>${anosIDH.map(a => `<tr><td>${a}</td><td>${idhSerie[regSel.sigla][a].toFixed(3).replace(".", ",")}</td></tr>`).join("")}</table>
+    <p class='fonte'>Tratamento: ESTIMATIVA — os dados municipais do IDHM são oficiais (Atlas/PNUD, via IpeaData); nenhuma fonte oficial publica IDHM por grande região, então o número da região é média ponderada pela população municipal (série ADH_PESOTOT), método aberto e verificável no código desta página.</p>
+    <p class='fonte'>Conferência do método: agregado Brasil 2010 = 0,723 vs. 0,727 publicado no Atlas (diferença decorre de municípios que mudaram de código entre censos — declarada como limitação).</p>
+    <p class='fonte'>Fonte da consulta: ${idhFonteURL}</p>
+    <p class='fonte'>Limitação: censitário (1991, 2000, 2010) — comparar com o PIB por marco escolhido, não ano a ano; não substitui eventual IDHM regional oficial eventualmente publicado pelo Atlas.</p>`
+    : `<p><span class='av'>A VERIFICAR</span> — a API do IpeaData não respondeu nesta sessão (valores do IDHM por município, base oficial). Consultar <a href='https://www.atlasbrasil.org.br/' target='_blank'>atlasbrasil.org.br</a> e registrar abaixo APÓS conferir na fonte citada.</p>`;
+  const tbIDHfinal = tbIDH + `
+    <p class='fonte'>Editor manual: só digite valor que tenha checado no Atlas. Salvo no seu navegador e exibido como "preenchido manualmente (fonte: Atlas)".</p>
     <div id="editorIDH"></div>`;
-    bloco("IDH-M — Atlas/Ipea (censitário)", tbIDH);
-    montarEditorIDH(regSel.sigla);
-  }
+  bloco("IDH-M — Atlas/Ipea (censitário)", tbIDHfinal);
+  montarEditorIDH(regSel.sigla);
   bloco("Resumo executivo (rascunho)", `<p>${resumo(regSel)}</p>`);
 }
 
@@ -551,7 +601,7 @@ document.getElementById("play").addEventListener("click", () => {
     selecionar(regSel ? regSel.id : 1);
   });
   carregarIdh().then(ok => {
-    if (ok) { bIdh.remove(); badge("idh", "IDH-M (Ipea/Atlas): ok", "ok"); }
+    if (ok) { bIdh.remove(); badge("idh", "IDH-M (Ipea/Atlas): ok — estimativa ponderada por município", "ok"); }
     else { bIdh.remove(); badge("idh", "IDH-M (Ipea/Atlas): sem resposta — A VERIFICAR", "warn"); }
     selecionar(regSel ? regSel.id : 1);
   });
