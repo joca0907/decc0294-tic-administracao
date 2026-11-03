@@ -95,9 +95,10 @@
   <p><b>Sem número sem fonte.</b> Links de consulta: 
      PIB — <a href="https://sidra.ibge.gov.br/tabela/5938" target="_blank">SIDRA t.5938 (PIB dos Municípios)</a>,
      contorno — <a href="https://servicodados.ibge.gov.br/api/v3/malhas/regioes/1" target="_blank">malha por região (IBGE)</a>,
-     IDH-M — <a href="https://www.atlasbrasil.org.br/" target="_blank">Atlas do Desenvolvimento Humano (PNUD/Ipea/FJP/Ipea)</a>,
+     IDH-M — <a href="https://www.atlasbrasil.org.br/" target="_blank">Atlas do Desenvolvimento Humano (PNUD/Ipea/FJP)</a>,
+     IDH-M por UF, PNAD 2012–2021 — <a href="https://www.undp.org/pt/brazil/desenvolvimento-humano/painel-idhm" target="_blank">Painel IDHM (PNUD Brasil)</a>,
      espelho via IpeaData — <a href="https://www.ipeadata.gov.br/" target="_blank">ipeadata.gov.br</a>.</p>
-  <p>Rascunho produzido com apoio do agente (data de geração: <span id="dataGeracao"></span>). Valores exibidos devem ser conferidos na fonte antes de virar texto final. Períodos do IDH-M são censitários; compare com PIB por marco, não ano a ano.</p>
+  <p>Rascunho produzido com apoio do agente (data de geração: <span id="dataGeracao"></span>). Valores exibidos devem ser conferidos na fonte antes de virar texto final. Períodos do IDH-M censitário: 1991, 2000 e 2010 por município; série anual oficial por UF: PNAD Contínua 2012–2021 (PNUD) — as duas fontes não são comparáveis entre si; compare com PIB por marco, não ano a ano.</p>
 </footer>
 
 <script>
@@ -352,6 +353,103 @@ async function carregarIdh(){
   } catch (e) { return false; }
 }
 
+/* ---------- 3b. IDHM por UF — base oficial PNUD (Painel IDHM; PNAD Contínua 2012–2021) ----------
+   O PNUD publica esta base em xlsx com níveis BRASIL/UF/RM_RIDE — REGIÃO não é publicado.
+  .Opção B combinada com o estudante: mostrar os valores OFICIAIS por UF, sem derivar nada.
+   Leitura do xlsx no próprio navegador (zip central-directory + inflate raw nativo). */
+let idhmUF = null;        // {nomeUF: {ano: valor}} — somente linhas AGREGACAO = "UF"
+let idhufFonteURL = null;
+async function carregarIdhUF(){
+  const hoje = new Date().toISOString().slice(0, 10);
+  try {
+    const c = JSON.parse(localStorage.getItem("idhmUfCache") || "null");
+    if (c && c.dia === hoje && c.dados) { idhmUF = c.dados; idhufFonteURL = c.fonte; return true; }
+  } catch (e) {}
+  const url = "https://www.undp.org/sites/g/files/zskgke326/files/2023-07/base_de_dados.xlsx";
+  try {
+    const r = await fetchComLimite(url, 30000);
+    if (!r.ok) return false;
+    idhmUF = await parseXlsxIdhm(await r.arrayBuffer());
+    if (!idhmUF) return false;
+    idhufFonteURL = url + " (Painel IDHM, PNUD Brasil — base publicada em 2023-07; índices calculados com PNAD Contínua, IBGE; níveis publicados: Brasil, UF e RM/RIDE — IDHM regional anual não é publicado por fonte oficial)";
+    try { localStorage.setItem("idhmUfCache", JSON.stringify({ dia: hoje, fonte: idhufFonteURL, dados: idhmUF })); } catch (e) {}
+    return true;
+  } catch (e) { return false; }
+}
+async function parseXlsxIdhm(buf){
+  try {
+    if (!("DecompressionStream" in window)) return null;
+    const u8 = new Uint8Array(buf), dv = new DataView(buf);
+    let eocd = -1;
+    for (let o = u8.length - 22; o >= 0; o--) {
+      if (u8[o] === 0x50 && u8[o + 1] === 0x4B && u8[o + 2] === 0x05 && u8[o + 3] === 0x06) { eocd = o; break; }
+    }
+    if (eocd < 0) return null;
+    const nEnt = dv.getUint16(eocd + 10, true);
+    let off = dv.getUint32(eocd + 16, true);
+    const bruto = {};
+    for (let k = 0; k < nEnt; k++) {
+      if (!(u8[off] === 0x50 && u8[off + 1] === 0x4B && u8[off + 2] === 0x01 && u8[off + 3] === 0x02)) return null;
+      const metodo = dv.getUint16(off + 10, true);
+      const tamComp = dv.getUint32(off + 20, true);
+      const tamNome = dv.getUint16(off + 28, true);
+      const tamExtra = dv.getUint16(off + 30, true);
+      const tamCom = dv.getUint16(off + 32, true);
+      const nome = new TextDecoder("latin1").decode(u8.subarray(off + 46, off + 46 + tamNome));
+      const local = dv.getUint32(off + 42, true);
+      const nL = dv.getUint16(local + 26, true);
+      const eL = dv.getUint16(local + 28, true);
+      bruto[nome] = { metodo, d: u8.subarray(local + 30 + nL + eL, local + 30 + nL + eL + tamComp) };
+      off += 46 + tamNome + tamExtra + tamCom;
+    }
+    const inflar = async (nomeArq) => {
+      const e = bruto[nomeArq];
+      if (!e || !e.d) throw new Error("entrada ausente " + nomeArq);
+      if (e.metodo === 0) return new TextDecoder().decode(e.d);
+      // Response(body=ArrayBuffer).body → fluxo; passa pelo DecompressionStream (deflate-raw do zip)
+      const fluxoDesc = new Response(e.d.slice().buffer).body.pipeThrough(new DecompressionStream("deflate-raw"));
+      return await new Response(fluxoDesc).text();
+    };
+    const docs = new DOMParser();
+    const xmlSS = await inflar("xl/sharedStrings.xml");
+    const strs = [...docs.parseFromString(xmlSS, "text/xml").getElementsByTagName("si")]
+      .map(si => [...si.getElementsByTagName("t")].map(t => t.textContent).join(""));
+    const xmlAbrir = await inflar("xl/worksheets/sheet1.xml");
+    const folha = docs.parseFromString(xmlAbrir, "text/xml");
+    const linhasXML = folha.getElementsByTagName("row");
+    if (!linhasXML.length) return null;
+    const colRef = c => (/^([A-Z]+)/.exec((c.getAttribute && c.getAttribute("r")) || "") || [])[1];
+    const valDe = c => {
+      const vEls = c.getElementsByTagName("v");
+      let t = vEls.length ? vEls[0].textContent : (c.getAttribute("t") === "inlineStr" ? c.textContent : "");
+      if (c.getAttribute("t") === "s") t = (strs[parseInt(t)] ?? t);
+      return t;
+    };
+    const linCab = [...linhasXML[0].children];
+    const letraDeTexto = txt => linCab.find(c => valDe(c) === txt);
+    const czANO = letraDeTexto("ANO"), czAGR = letraDeTexto("AGREGACAO"), czNOM = letraDeTexto("NOME"), czIDH = letraDeTexto("IDHM");
+    if (!czANO || !czAGR || !czNOM || !czIDH) return null;
+    const LANO = colRef(czANO), LAGR = colRef(czAGR), LNOM = colRef(czNOM), LIDH = colRef(czIDH);
+    const folhaColeta = (lin, letra) => {
+      for (const c of lin.children) if (colRef(c) === letra) return valDe(c);
+      return null;
+    };
+    const out = {};
+    for (const lin of linhasXML) {
+      if (lin.getAttribute("r") === "1") continue;
+      const ano = folhaColeta(lin, LANO);
+      const agreg = folhaColeta(lin, LAGR);
+      const nome = folhaColeta(lin, LNOM);
+      const val = folhaColeta(lin, LIDH);
+      if (agreg !== "UF" || !nome || !/^\d{4}$/.test(String(ano || ""))) continue;
+      const v = parseFloat(val);
+      if (isNaN(v)) continue;
+      (out[nome] = out[nome] || {})[ano] = v;
+    }
+    return Object.keys(out).length ? out : null;
+  } catch (e) { return null; }
+}
+
 /* ---------- 4. participação no PIB nacional (oficial v.496; derivado como plano B) ---------- */
 function participacao(ano){
   // 1º: participação publicada diretamente pelo IBGE (v.496 da t.5938)
@@ -456,7 +554,17 @@ function selecionar(id){
     <p class='fonte'>Fonte da consulta: ${idhFonteURL}</p>
     <p class='fonte'>Limitação: censitário (1991, 2000, 2010) — comparar com o PIB por marco escolhido, não ano a ano; não substitui eventual IDHM regional oficial eventualmente publicado pelo Atlas.</p>`
     : `<p><span class='av'>A VERIFICAR</span> — a API do IpeaData não respondeu nesta sessão (valores do IDHM por município, base oficial). Consultar <a href='https://www.atlasbrasil.org.br/' target='_blank'>atlasbrasil.org.br</a> e registrar abaixo APÓS conferir na fonte citada.</p>`;
-  const tbIDHfinal = tbIDH + `
+  // série oficial por UF (Painel IDHM — PNUD; PNAD Contínua 2012–2021): valores publicados, sem derivação
+  const ufsReg = Object.keys(ESTADO_NOME_REGIAO).filter(u => ESTADO_NOME_REGIAO[u] === regSel.nome).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const anosUF = idhmUF && ufsReg.length ? [...new Set(ufsReg.flatMap(u => Object.keys(idhmUF[u] || {})))].sort() : [];
+  const tbUF = anosUF.length
+    ? `<table class='dados'><tr><th>UF (oficial, PNUD/PNAD)</th>${anosUF.map(a => `<th>${a}</th>`).join("")}</tr>${ufsReg.map(u => `<tr><td>${u}</td>${anosUF.map(a => `<td>${(idhmUF[u] && idhmUF[u][a] != null) ? idhmUF[u][a].toFixed(3).replace(".", ",") : "—"}</td>`).join("")}</tr>`).join("")}</table>
+    <p class='fonte'>Tratamento: valores OFICIAIS do IDHM por Unidade da Federação (PNUD Brasil — Painel IDHM), calculados com PNAD Contínua — nenhum derivado aqui; a tabela lista as UFs publicadas desta região.</p>
+    <p class='fonte'>Não comparável com a série censitária acima (fonte e metodologia diferentes: PNAD Contínua 2012–2021 vs. Censos 1991/2000/2010): compare por bloco, não atravessando a fronteira 2010→2012.</p>
+    <p class='fonte'>Observação: IDHM anual por grande região NÃO é publicado por fonte oficial (níveis publicados: Brasil, UF e RM/RIDE) — por isso a tabela lista UF, e não a região.</p>
+    <p class='fonte'>Fonte da consulta: ${idhufFonteURL}</p>`
+    : `<p><span class='av'>A VERIFICAR</span> — a base oficial do PNUD (IDHM por UF, PNAD 2012–2021) não respondeu nesta sessão; conferir em <a href='https://www.undp.org/pt/brazil/desenvolvimento-humano/painel-idhm' target='_blank'>undp.org − Painel IDHM</a> e registrar no editor abaixo.</p>`;
+  const tbIDHfinal = tbIDH + tbUF + `
     <p class='fonte'>Editor manual: só digite valor que tenha checado no Atlas. Salvo no seu navegador e exibido como "preenchido manualmente (fonte: Atlas)".</p>
     <div id="editorIDH"></div>`;
   bloco("IDH-M — Atlas/Ipea (censitário)", tbIDHfinal);
@@ -603,6 +711,12 @@ document.getElementById("play").addEventListener("click", () => {
   carregarIdh().then(ok => {
     if (ok) { bIdh.remove(); badge("idh", "IDH-M (Ipea/Atlas): ok — estimativa ponderada por município", "ok"); }
     else { bIdh.remove(); badge("idh", "IDH-M (Ipea/Atlas): sem resposta — A VERIFICAR", "warn"); }
+    selecionar(regSel ? regSel.id : 1);
+  });
+  const bIdhuf = badge("idhuf", "IDH-M UF (PNUD/PNAD): consultando…", "");
+  carregarIdhUF().then(ok => {
+    if (ok) { bIdhuf.remove(); badge("idhuf", "IDH-M UF (PNUD/PNAD): ok — valores oficiais por estado", "ok"); }
+    else { bIdhuf.remove(); badge("idhuf", "IDH-M UF (PNUD/PNAD): sem resposta — A VERIFICAR", "warn"); }
     selecionar(regSel ? regSel.id : 1);
   });
 })();
