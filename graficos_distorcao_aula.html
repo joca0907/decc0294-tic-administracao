@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mesmo dado, duas leituras: gráfico honesto x gráfico distorcido</title>
+<style>
+  :root { font-family: "Segoe UI", Arial, sans-serif; }
+  body { background: #f2f4f7; margin: 0; padding: 24px; color: #1f2937; }
+  h1 { font-size: 1.5rem; text-align: center; margin: 0 0 4px; }
+  .sub { text-align: center; color: #6b7280; margin-bottom: 24px; font-size: 0.95rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+  .card { background: #fff; border-radius: 12px; padding: 16px 16px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.08); width: 520px; max-width: 100%; }
+  .card h2 { font-size: 1.1rem; margin: 0 0 2px; }
+  .tag { display: inline-block; font-size: .75rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-bottom: 8px; }
+  .tag.ok { background: #d1fae5; color: #065f46; }
+  .tag.mau { background: #fee2e2; color: #991b1b; }
+  canvas { width: 100% !important; height: 340px !important; }
+  .nota { font-size: .85rem; color: #4b5563; margin: 10px 0 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: .85rem; margin: 8px 0 4px; }
+  th, td { border: 1px solid #e5e7eb; padding: 4px 8px; text-align: center; }
+  th { background: #f9fafb; }
+  .tabela-wrap { max-width: 1080px; margin: 28px auto 0; background: #fff; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .roteiro { max-width: 1080px; margin: 20px auto 0; background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 16px 24px; font-size: .9rem; }
+  .roteiro h2 { margin: 0 0 8px; font-size: 1.05rem; }
+  .roteiro li { margin: 4px 0; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h1>Mesmo dado, duas leituras: como a escala muda a conclusão</h1>
+<p class="sub">Exemplo para aula — os dois gráficos usam <b>exatamente o mesmo conjunto de dados</b>. Só a apresentação muda.</p>
+
+<div class="row">
+  <div class="card">
+    <span class="tag ok">GRÁFICO 1 — Representação honesta</span>
+    <h2>Faturamento mensal (R$ mil) — 2026</h2>
+    <div class="nota"><b>Boas práticas:</b> eixo Y começa em zero (linha, não área — sou trafegável aqui, mas com eixo completo), escala uniforme, título neutro. A leitura: variou pouco, entre <code>92</code> e <code>100</code> — é um negócio estável, com pequena melhora no fim do ano.</div>
+    <canvas id="graficoHonesto" width="1000" height="680"></canvas>
+  </div>
+
+  <div class="card">
+    <span class="tag mau">GRÁFICO 2 — Com viés de distorção</span>
+    <h2 style="color:#b91c1c">🚨 QUEDA BRUTAL: faturamento despenca em 2026</h2>
+    <div class="nota" style="color:#991b1b"><b>Artifícios usados:</b> (1) eixo Y truncado, começando em <code>86</code> e terminando em <code>101</code> — corta 86% do gráfico; (2) cor de alarme; (3) título sensacionalista. A <i>mesma</i> série agora parece um desastre. (4) Nenhuma referência de contexto: sem o zero, o olho compara a <i>inclinação aparente</i>, não o valor real.</div>
+    <canvas id="graficoDistorcido" width="1000" height="680"></canvas>
+  </div>
+</div>
+
+<div class="tabela-wrap">
+  <h2 style="margin:0 0 6px; font-size:1.05rem">Os dados (idênticos nos dois gráficos)</h2>
+  <table id="tabelaDados"></table>
+  <p class="nota">Fonte: dados fictícios criados para fins didáticos (DB — dado bruto sem fonte real). Amplitude total: 92 → 100 (variação de ≈ 8,7%).</p>
+</div>
+
+<div class="roteiro">
+  <h2>Roteiro rápido para conduzir a discussão</h2>
+  <ol>
+    <li><b>Esconda os títulos.</b> Mostre só as linhas e pergunte: "o que aconteceu com essa empresa?" — as respostas dos dois grupos serão contraditórias.</li>
+    <li><b>Revele os títulos.</b> Discuta como o enquadramento (escala + cor + palavras) orientou a conclusão antes de alguém questionar o dado.</li>
+    <li><b>Questione a regra.</b> Eixo sempre em zero? Para <b>gráfico de linha</b>, a literatura (ex.: Tufte; com ressalvas) admite escala truncada quando a variação é o que importa — o erro não é truncar, é <b>omitir que truncou</b> (repare: o gráfico 2 esconde o valor inicial do eixo).</li>
+    <li><b>Feche com o contraste:</b> nenhuma informação é falsa no gráfico 2 — cada valor plotado é verdadeiro. A mentira está na moldura, não no dado.</li>
+  </ol>
+</div>
+
+<script>
+// ============ O ÚNICO CONJUNTO DE DADOS (usado por ambos os gráficos) ============
+const rotulos = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const valores = [100, 97.5, 95, 93.5, 92.5, 92, 92.8, 94.5, 96, 98, 99.5, 100];
+
+// ---------- tabela ----------
+(() => {
+  const t = document.getElementById("tabelaDados");
+  const linha1 = "<tr><th>Mês</th>" + rotulos.map(r => "<th>" + r + "</th>").join("") + "</tr>";
+  const linha2 = "<tr><th>R$ mil</th>" + valores.map(v => "<td>" + String(v).replace(".", ",") + "</td>").join("") + "</tr>";
+  t.innerHTML = linha1 + linha2;
+})();
+
+// ---------- desenho manual dos gráficos (sem bibliotecas) ----------
+function desenhar(canvas, cfg) {
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const m = { t: 30, r: 30, b: 55, l: 80 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  ctx.clearRect(0, 0, W, H);
+
+  const [yMin, yMax] = cfg.escala;
+  const x = i => m.l + (pw * i) / (rotulos.length - 1);
+  const y = v => m.t + ph * (1 - (v - yMin) / (yMax - yMin));
+
+  // grades e rótulos do eixo Y
+  const marcas = cfg.marcasY;
+  ctx.font = "22px Arial"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  ctx.lineWidth = 1;
+  marcas.forEach(v => {
+    const py = y(v);
+    ctx.strokeStyle = v === cfg.linhaDestaque ? "#9ca3af" : "#e5e7eb";
+    ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(W - m.r, py); ctx.stroke();
+    ctx.fillStyle = "#374151";
+    ctx.fillText(v == 0 ? "0" : String(v).replace(".", ","), m.l - 10, py);
+  });
+
+  // eixos
+  ctx.strokeStyle = "#6b7280"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(m.l, m.t); ctx.lineTo(m.l, m.t + ph); ctx.lineTo(W - m.r, m.t + ph); ctx.stroke();
+
+  // rótulos do eixo X
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  rotulos.forEach((r, i) => { ctx.fillStyle = "#6b7280"; ctx.fillText(r, x(i), m.t + ph + 10); });
+
+  // a linha
+  ctx.strokeStyle = cfg.corLinha; ctx.lineWidth = 5; ctx.lineJoin = "round";
+  ctx.beginPath();
+  valores.forEach((v, i) => i ? ctx.lineTo(x(i), y(v)) : ctx.moveTo(x(i), y(v)));
+  ctx.stroke();
+  // pontos
+  ctx.fillStyle = cfg.corLinha;
+  valores.forEach((v, i) => { ctx.beginPath(); ctx.arc(x(i), y(v), 6, 0, 7); ctx.fill(); });
+}
+
+// GRÁFICO 1 — honesto: eixo de 0 a 120, marcas a cada 20, linha tudo visível
+desenhar(document.getElementById("graficoHonesto"), {
+  escala: [0, 120],
+  marcasY: [0, 20, 40, 60, 80, 100, 120],
+  linhaDestaque: 100,
+  corLinha: "#2563eb",
+  sensacionalista: false
+});
+
+// GRÁFICO 2 — distorcido: eixo de 86 a 101 (corta ~86% da área real), sem alerta
+desenhar(document.getElementById("graficoDistorcido"), {
+  escala: [86, 101],
+  marcasY: [86, 88, 90, 92, 94, 96, 98, 100],
+  linhaDestaque: 100,
+  corLinha: "#dc2626"
+});
+</script>
+</body>
+</html>
